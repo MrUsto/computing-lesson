@@ -27,13 +27,27 @@
   .tag{font-size:.8rem;font-weight:600;background:#e8edf7;color:var(--navy);border-radius:999px;padding:3px 10px}
   .go{margin-top:14px;font-weight:700;color:var(--red)}
   footer{text-align:center;color:var(--muted);font-size:.9rem;padding:0 24px 30px}
+  .toprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .hc-btn{font:inherit;font-weight:700;font-size:1rem;border:2px solid var(--red);background:var(--red);color:#fff;border-radius:999px;padding:8px 18px;cursor:pointer}
+  .hc-btn[aria-pressed="true"]{background:#ffd400;border-color:#ffd400;color:#000}
+  /* High contrast (visual impairment support) */
+  body.hc{background:#000;color:#fff}
+  body.hc h2{color:#ffd400}
+  body.hc .card{background:#000;border:3px solid #fff}
+  body.hc .card::before{background:#ffd400}
+  body.hc .card h3{color:#fff}
+  body.hc .card p, body.hc footer{color:#fff}
+  body.hc .tag{background:#fff;color:#000}
+  body.hc .go{color:#ffd400}
+  body.hc .card:hover, body.hc .card:focus-visible{border-color:#ffd400;box-shadow:none}
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap">
-    <h1>💻 Computing Lessons</h1>
+    <div class="toprow"><h1>💻 Computing Lessons</h1>
+      <button id="hcBtn" class="hc-btn" aria-pressed="false">High contrast</button></div>
     <p>Interactive resources for computer science. Pick an activity to get started.</p>
   </div>
 </header>
@@ -70,5 +84,22 @@
 
 <footer>Tip: bookmark this page. New resources will appear here.</footer>
 
+<script>
+  // One setting shared by every page on this website
+  const btn = document.getElementById("hcBtn");
+  function set(on) {
+    document.body.classList.toggle("hc", on);
+    btn.setAttribute("aria-pressed", on);
+    btn.textContent = on ? "High contrast: ON" : "High contrast";
+  }
+  let saved = false;
+  try { saved = localStorage.getItem("hubHighContrast") === "1"; } catch (e) {}
+  set(saved);
+  btn.onclick = () => {
+    const on = !document.body.classList.contains("hc");
+    set(on);
+    try { localStorage.setItem("hubHighContrast", on ? "1" : "0"); } catch (e) {}
+  };
+</script>
 </body>
 </html>

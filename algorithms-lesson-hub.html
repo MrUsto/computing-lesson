@@ -17,6 +17,9 @@
         border-radius:999px;padding:6px 16px;cursor:pointer}
   .tab:hover{background:rgba(255,255,255,.15)}
   .tab.active{background:#fff;color:#001C54;box-shadow:inset 0 -4px 0 #EC1C24}
+  .hc-btn{font:inherit;font-weight:700;font-size:clamp(.8rem,1.3vw,1rem);border:2px solid #EC1C24;background:#EC1C24;color:#fff;
+           border-radius:999px;padding:6px 16px;cursor:pointer}
+  .hc-btn[aria-pressed="true"]{background:#ffd400;border-color:#ffd400;color:#000}
   .frames{flex:1;position:relative}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#f8fafc}
   iframe.active{display:block}
@@ -31,6 +34,7 @@
       <button class="tab" data-view="bubble">🫧 Bubble sort · O(n²)</button>
       <button class="tab" data-view="heur">🧭 Intractable problems &amp; heuristics</button>
     </nav>
+    <button id="hcBtn" class="hc-btn" aria-pressed="false">High contrast</button>
   </header>
   <div class="frames">
     <iframe id="merge" class="active" title="Merge sort" srcdoc="&lt;!DOCTYPE html&gt;
@@ -139,6 +143,34 @@
   .gcell.slot{background:#fde68a}
   .gcell.fill{background:#dc2626}
   .gridtext p{margin:6px 0;font-size:1.05rem}
+
+  /* ---------- High contrast mode (for visual impairment) ---------- */
+  body.hc{--bg:#000;--ink:#fff;--muted:#fff;--line:#fff;--panel:#000;background:#000;color:#fff}
+  body.hc header h1, body.hc .step-title{color:#fff !important}
+  body.hc .panel, body.hc .meter{background:#000;border:3px solid #fff}
+  body.hc .note, body.hc .label, body.hc .meter small, body.hc header p, body.hc .legend{color:#fff;font-weight:600}
+  body.hc .cell{background:#000 !important;border:3px solid #fff;color:#fff;font-size:1.2rem;box-shadow:none}
+  body.hc .split .group{background:#000;border:3px dashed #fff}
+  body.hc .merge .group{background:#000;border:4px solid #ffd400}
+  body.hc .divider{color:#fff}
+  body.hc .tag{background:#fff !important;color:#000 !important}
+  body.hc button{background:#000;color:#fff;border:3px solid #fff}
+  body.hc button.primary{background:#ffd400 !important;color:#000 !important;border-color:#ffd400 !important}
+  body.hc .dot{background:#555} body.hc .dot.on{background:#fff}
+  body.hc .track{background:#333}
+  body.hc .fill.good{background:#00e676} body.hc .fill.bad{background:#ff5252}
+  body.hc .bbar{background:#fff;color:#000;border:2px solid #fff}
+  body.hc .bbar.cmp{background:#ffd400;color:#000}
+  body.hc .bbar.swp{background:#ff5252;color:#000}
+  body.hc .bbar.done{background:#00e676;color:#000}
+  body.hc .legend i{outline:2px solid #fff}
+  body.hc .legend span:nth-child(1) i{background:#ffd400 !important}
+  body.hc .legend span:nth-child(2) i{background:#ff5252 !important}
+  body.hc .legend span:nth-child(3) i{background:#00e676 !important}
+  body.hc .gcell{background:#222} body.hc .gcell.slot{background:#666} body.hc .gcell.fill{background:#ff5252}
+  body.hc .codebox, body.hc .formula{border:3px solid #fff;font-size:1rem}
+  body.hc .c{color:#bbb}
+  body.hc .explain b[style]{color:#ffd400 !important}
 &lt;/style&gt;
 
 &lt;style&gt;
@@ -424,6 +456,12 @@
     const bubbleOpen = document.getElementById(&quot;bubbleTab&quot;).classList.contains(&quot;active&quot;);
     if (e.key === &quot;ArrowRight&quot;) document.getElementById(bubbleOpen ? &quot;bNext&quot; : &quot;nextBtn&quot;).click();
     if (e.key === &quot;ArrowLeft&quot;) document.getElementById(bubbleOpen ? &quot;bBack&quot; : &quot;backBtn&quot;).click();
+  });
+
+
+  // High contrast: switched on by the hub (postMessage works even in sandboxed previews)
+  window.addEventListener(&quot;message&quot;, e =&gt; {
+    if (e.data &amp;&amp; typeof e.data.hc === &quot;boolean&quot;) document.body.classList.toggle(&quot;hc&quot;, e.data.hc);
   });
 
   // ---------- Tabs ----------
@@ -683,6 +721,34 @@
   .gcell.slot{background:#fde68a}
   .gcell.fill{background:#dc2626}
   .gridtext p{margin:6px 0;font-size:1.05rem}
+
+  /* ---------- High contrast mode (for visual impairment) ---------- */
+  body.hc{--bg:#000;--ink:#fff;--muted:#fff;--line:#fff;--panel:#000;background:#000;color:#fff}
+  body.hc header h1, body.hc .step-title{color:#fff !important}
+  body.hc .panel, body.hc .meter{background:#000;border:3px solid #fff}
+  body.hc .note, body.hc .label, body.hc .meter small, body.hc header p, body.hc .legend{color:#fff;font-weight:600}
+  body.hc .cell{background:#000 !important;border:3px solid #fff;color:#fff;font-size:1.2rem;box-shadow:none}
+  body.hc .split .group{background:#000;border:3px dashed #fff}
+  body.hc .merge .group{background:#000;border:4px solid #ffd400}
+  body.hc .divider{color:#fff}
+  body.hc .tag{background:#fff !important;color:#000 !important}
+  body.hc button{background:#000;color:#fff;border:3px solid #fff}
+  body.hc button.primary{background:#ffd400 !important;color:#000 !important;border-color:#ffd400 !important}
+  body.hc .dot{background:#555} body.hc .dot.on{background:#fff}
+  body.hc .track{background:#333}
+  body.hc .fill.good{background:#00e676} body.hc .fill.bad{background:#ff5252}
+  body.hc .bbar{background:#fff;color:#000;border:2px solid #fff}
+  body.hc .bbar.cmp{background:#ffd400;color:#000}
+  body.hc .bbar.swp{background:#ff5252;color:#000}
+  body.hc .bbar.done{background:#00e676;color:#000}
+  body.hc .legend i{outline:2px solid #fff}
+  body.hc .legend span:nth-child(1) i{background:#ffd400 !important}
+  body.hc .legend span:nth-child(2) i{background:#ff5252 !important}
+  body.hc .legend span:nth-child(3) i{background:#00e676 !important}
+  body.hc .gcell{background:#222} body.hc .gcell.slot{background:#666} body.hc .gcell.fill{background:#ff5252}
+  body.hc .codebox, body.hc .formula{border:3px solid #fff;font-size:1rem}
+  body.hc .c{color:#bbb}
+  body.hc .explain b[style]{color:#ffd400 !important}
 &lt;/style&gt;
 
 &lt;style&gt;
@@ -970,6 +1036,12 @@
     if (e.key === &quot;ArrowLeft&quot;) document.getElementById(bubbleOpen ? &quot;bBack&quot; : &quot;backBtn&quot;).click();
   });
 
+
+  // High contrast: switched on by the hub (postMessage works even in sandboxed previews)
+  window.addEventListener(&quot;message&quot;, e =&gt; {
+    if (e.data &amp;&amp; typeof e.data.hc === &quot;boolean&quot;) document.body.classList.toggle(&quot;hc&quot;, e.data.hc);
+  });
+
   // ---------- Tabs ----------
   document.querySelectorAll(&quot;.tab&quot;).forEach(t =&gt; t.onclick = () =&gt; {
     document.querySelectorAll(&quot;.tab&quot;).forEach(x =&gt; x.classList.toggle(&quot;active&quot;, x === t));
@@ -1138,7 +1210,7 @@
   html,body{margin:0;height:100%;background:#1f1f1f;font-family:&quot;Fredoka&quot;,system-ui,sans-serif;color:var(--ink)}
   .mono{font-family:&quot;JetBrains Mono&quot;,monospace}
   .stage{height:100%;display:flex;align-items:center;justify-content:center;padding:12px}
-  .slide{display:none;width:min(100%, calc((100vh - 90px) * 16 / 9));aspect-ratio:16/9;background:var(--bg);border-radius:16px;
+  .slide{display:none;width:min(100%, calc((100vh - 120px) * 16 / 9));aspect-ratio:16/9;background:var(--bg);border-radius:16px;
          padding:2.2% 3%;position:relative;overflow:auto}
   .slide.active{display:flex;flex-direction:column}
   .slide h1{margin:0 0 .4em;font-size:clamp(1.4rem,3vw,2.5rem);color:var(--maroon)}
@@ -1177,15 +1249,15 @@
   .step.on{opacity:1;border-color:var(--maroon)}
   .loop{background:#fff;border:2px solid var(--line);border-radius:10px;padding:4px;text-align:center;transition:all .3s;opacity:0}
   .loop.show{opacity:1}
-  .loop svg{width:100%;height:auto;display:block}
+  .loop svg{width:100%;height:auto;max-height:15vh;display:block}
   .loop small{font-family:&quot;JetBrains Mono&quot;,monospace;font-size:clamp(.6rem,.95vw,.8rem)}
   .formula-big{margin-top:auto;text-align:center;font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;
                font-size:clamp(1rem,2vw,1.6rem);color:var(--maroon);padding-top:10px}
 
   /* Lab notes */
-  .notes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
-  .note{background:#fff;border-radius:10px;padding:8px 10px;border-top:5px solid;font-size:clamp(.7rem,1vw,.88rem);line-height:1.35}
-  .note b{display:block;font-size:clamp(.78rem,1.1vw,.98rem);margin-bottom:2px}
+  .notes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px}
+  .note{background:#fff;border-radius:10px;padding:6px 9px;border-top:5px solid;font-size:clamp(.7rem,1vw,.88rem);line-height:1.35}
+  .note &gt; b:first-child{display:block;font-size:clamp(.78rem,1.1vw,.98rem);margin-bottom:2px}
 
   /* Methods slide: shorter cards + sat-nav case study */
   .grid3 .flip, .grid3 .flip .inner{min-height:96px}
@@ -1209,7 +1281,7 @@
   .p3{border-color:var(--warn);background:var(--warn-bg)} .p4{border-color:var(--bad);background:var(--bad-bg)}
 
   /* Slide 4: TSP lab */
-  canvas{width:auto;max-width:100%;max-height:34vh;margin:0 auto;background:#fff;border:2px solid var(--line);border-radius:14px;display:block}
+  canvas{width:auto;max-width:100%;max-height:18vh;margin:0 auto;background:#fff;border:2px solid var(--line);border-radius:14px;display:block}
   .tools{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
   table{border-collapse:collapse;width:100%;font-size:clamp(.8rem,1.2vw,1rem)}
   td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
@@ -1234,6 +1306,33 @@
   .score{font-size:clamp(1.2rem,2.2vw,1.8rem);font-weight:700;color:var(--good);margin-top:8px}
   .model{display:none;background:var(--good-bg);border:2px solid var(--good);border-radius:12px;padding:12px;margin-top:8px}
   .model.show{display:block}
+
+  /* ---------- High contrast mode (for visual impairment) ---------- */
+  body.hc{background:#000}
+  body.hc .slide{background:#000;color:#fff;border:3px solid #fff}
+  body.hc .slide h1, body.hc .slide h2, body.hc .satnav h2{color:#fff}
+  body.hc .kicker{background:#ffd400;color:#000}
+  body.hc .card, body.hc .def, body.hc .question, body.hc .msg, body.hc .note, body.hc .sat, body.hc .satnav,
+  body.hc .loop, body.hc .point, body.hc .back, body.hc textarea{background:#000 !important;color:#fff !important;border:3px solid #fff !important}
+  body.hc .point .hide, body.hc td, body.hc th{color:#fff}
+  body.hc .front{background:#000;border:3px solid #ffd400;color:#fff}
+  body.hc .hl{background:#ffd400;color:#000}
+  body.hc .bigstat, body.hc .formula-big, body.hc .score{color:#ffd400}
+  body.hc .decode .card b{color:#ffd400}
+  body.hc button.btn{background:#000;color:#fff;border:3px solid #fff}
+  body.hc button.btn.solid{background:#ffd400;color:#000;border-color:#ffd400}
+  body.hc canvas{background:#000;border:3px solid #fff}
+  body.hc .timebar{background:#333}
+  body.hc .model{background:#000;color:#fff;border:3px solid #00e676}
+  body.hc .loop svg circle{fill:#fff} body.hc .loop svg text{fill:#000}
+  body.hc .loop polyline{stroke-width:7}
+  body.hc .loop.p0{border-color:#4da3ff !important} body.hc .loop.p0 polyline{stroke:#4da3ff}
+  body.hc .loop.p1{border-color:#ffb000 !important} body.hc .loop.p1 polyline{stroke:#ffb000}
+  body.hc .loop.p2{border-color:#00e676 !important} body.hc .loop.p2 polyline{stroke:#00e676}
+  body.hc .loop.p0 small, body.hc .loop.p1 small, body.hc .loop.p2 small{font-weight:700}
+  body.hc .step{opacity:.55} body.hc .step.on{opacity:1;border-color:#ffd400 !important}
+  body.hc .nav{background:#000;border:3px solid #fff} body.hc .nav span{color:#fff}
+  body.hc .nav button{background:#ffd400;color:#000}
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
@@ -1319,13 +1418,23 @@
 &lt;!-- ============ 4. TSP lab ============ --&gt;
 &lt;section class=&quot;slide&quot;&gt;
   &lt;span class=&quot;kicker&quot;&gt;Try it yourself&lt;/span&gt;
-  &lt;h1 style=&quot;margin-bottom:.2em&quot;&gt;Heuristics in action&lt;/h1&gt;
-  &lt;div class=&quot;grid2&quot; style=&quot;grid-template-columns:1.35fr 1fr&quot;&gt;
+  &lt;h1 style=&quot;margin-bottom:.1em&quot;&gt;Heuristics in action&lt;/h1&gt;
+  &lt;div class=&quot;grid2&quot; style=&quot;grid-template-columns:1.35fr 1fr;flex:0 0 auto&quot;&gt;
     &lt;div&gt;
       &lt;canvas id=&quot;map&quot; width=&quot;640&quot; height=&quot;400&quot;&gt;&lt;/canvas&gt;
       &lt;div class=&quot;tools&quot;&gt;
         &lt;button class=&quot;btn&quot; id=&quot;newCities&quot;&gt;🎲 New cities&lt;/button&gt;
         &lt;label style=&quot;align-self:center&quot;&gt;Cities &lt;select id=&quot;nCities&quot;&gt;&lt;option&gt;6&lt;/option&gt;&lt;option selected&gt;8&lt;/option&gt;&lt;option&gt;9&lt;/option&gt;&lt;option&gt;10&lt;/option&gt;&lt;option&gt;15&lt;/option&gt;&lt;option&gt;25&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;notes&quot;&gt;
+        &lt;div class=&quot;note&quot; style=&quot;border-color:#9ca3af&quot;&gt;&lt;b&gt;🎲 Random route&lt;/b&gt;
+          Visit the cities in any order. Instant, but no strategy, so the route is usually long. It&#x27;s our &lt;b&gt;baseline&lt;/b&gt;, not a heuristic.&lt;/div&gt;
+        &lt;div class=&quot;note&quot; style=&quot;border-color:#2563eb&quot;&gt;&lt;b&gt;🏃 Greedy (nearest neighbour)&lt;/b&gt;
+          From where you are, always go to the &lt;b&gt;closest unvisited city&lt;/b&gt;. A rule of thumb: fast and usually good, but it can leave a long trip home at the end.&lt;/div&gt;
+        &lt;div class=&quot;note&quot; style=&quot;border-color:#d97706&quot;&gt;&lt;b&gt;⛰️ Hill-climbing&lt;/b&gt;
+          Start with a route, then try &lt;b&gt;small changes&lt;/b&gt; (reverse a section). Keep a change only if it&#x27;s shorter. Stop when nothing helps: it may be stuck on a &quot;local best&quot;.&lt;/div&gt;
+        &lt;div class=&quot;note&quot; style=&quot;border-color:#16a34a&quot;&gt;&lt;b&gt;🐢 Brute force&lt;/b&gt;
+          Check &lt;b&gt;every one&lt;/b&gt; of the (n − 1)! ÷ 2 routes. &lt;b&gt;Guaranteed&lt;/b&gt; best, but only possible for a few cities. That&#x27;s why the problem is intractable.&lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
     &lt;div&gt;
@@ -1344,16 +1453,6 @@
       &lt;/table&gt;
       &lt;div class=&quot;msg&quot; id=&quot;labMsg&quot;&gt;Start with &lt;b&gt;Greedy&lt;/b&gt;: always travel to the &lt;b&gt;nearest unvisited city&lt;/b&gt;. It&#x27;s a rule of thumb!&lt;/div&gt;
     &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;notes&quot;&gt;
-    &lt;div class=&quot;note&quot; style=&quot;border-color:#9ca3af&quot;&gt;&lt;b&gt;🎲 Random route&lt;/b&gt;
-      Visit the cities in any order. Instant, but no strategy, so the route is usually long. It&#x27;s our &lt;b&gt;baseline&lt;/b&gt;, not a heuristic.&lt;/div&gt;
-    &lt;div class=&quot;note&quot; style=&quot;border-color:#2563eb&quot;&gt;&lt;b&gt;🏃 Greedy (nearest neighbour)&lt;/b&gt;
-      From where you are, always go to the &lt;b&gt;closest unvisited city&lt;/b&gt;. A rule of thumb: fast and usually good, but it can leave a long trip home at the end.&lt;/div&gt;
-    &lt;div class=&quot;note&quot; style=&quot;border-color:#d97706&quot;&gt;&lt;b&gt;⛰️ Hill-climbing&lt;/b&gt;
-      Start with a route, then try &lt;b&gt;small changes&lt;/b&gt; (reverse a section). Keep a change only if it&#x27;s shorter. Stop when nothing helps: it may be stuck on a &quot;local best&quot;.&lt;/div&gt;
-    &lt;div class=&quot;note&quot; style=&quot;border-color:#16a34a&quot;&gt;&lt;b&gt;🐢 Brute force&lt;/b&gt;
-      Check &lt;b&gt;every one&lt;/b&gt; of the (n − 1)! ÷ 2 routes. &lt;b&gt;Guaranteed&lt;/b&gt; best, but only possible for a few cities. That&#x27;s why the problem is intractable.&lt;/div&gt;
   &lt;/div&gt;
 &lt;/section&gt;
 
@@ -1495,7 +1594,7 @@
     document.getElementById(&quot;loops&quot;).innerHTML = list.map((o, i) =&gt; {
       const col = grouped ? PAIR_COL[PAIR[o]] : &quot;#7a1f4d&quot;;
       const label = `🏠→${o.split(&quot;&quot;).join(&quot;→&quot;)}→🏠`;
-      return `&lt;div class=&quot;loop ${cntStep &gt;= 2 ? &quot;show&quot; : &quot;&quot;}&quot; style=&quot;${grouped ? `border-color:${col}` : &quot;&quot;}&quot;&gt;
+      return `&lt;div class=&quot;loop ${cntStep &gt;= 2 ? &quot;show&quot; : &quot;&quot;} ${grouped ? &quot;p&quot; + PAIR[o] : &quot;&quot;}&quot; style=&quot;${grouped ? `border-color:${col}` : &quot;&quot;}&quot;&gt;
         ${loopSVG(o, col)}&lt;small&gt;${label}&lt;/small&gt;&lt;/div&gt;`;
     }).join(&quot;&quot;);
     document.getElementById(&quot;cntFormula&quot;).innerHTML = {
@@ -1551,7 +1650,9 @@
   // ---------------- Slide 4: TSP lab ----------------
   const canvas = document.getElementById(&quot;map&quot;), ctx = canvas.getContext(&quot;2d&quot;);
   let cities = [], routes = {}, hillTimer = null;
-  const COLORS = { rand: &quot;#9ca3af&quot;, greedy: &quot;#2563eb&quot;, hill: &quot;#d97706&quot;, opt: &quot;#16a34a&quot; };
+  const NORMAL = { rand: &quot;#9ca3af&quot;, greedy: &quot;#2563eb&quot;, hill: &quot;#d97706&quot;, opt: &quot;#16a34a&quot; };
+  const HIGH = { rand: &quot;#ffffff&quot;, greedy: &quot;#4da3ff&quot;, hill: &quot;#ffb000&quot;, opt: &quot;#00e676&quot; };
+  const isHC = () =&gt; document.body.classList.contains(&quot;hc&quot;);
   const dist = (a, b) =&gt; Math.hypot(cities[a].x - cities[b].x, cities[a].y - cities[b].y);
   const tourLen = t =&gt; t.reduce((s, c, i) =&gt; s + dist(c, t[(i + 1) % t.length]), 0);
 
@@ -1581,7 +1682,7 @@
     const show = active ? [active] : Object.keys(routes);
     show.forEach(k =&gt; {
       const t = routes[k]; if (!t) return;
-      ctx.strokeStyle = COLORS[k]; ctx.lineWidth = k === &quot;opt&quot; ? 5 : 3;
+      ctx.strokeStyle = (isHC() ? HIGH : NORMAL)[k]; ctx.lineWidth = (k === &quot;opt&quot; ? 5 : 3) + (isHC() ? 2 : 0);
       ctx.setLineDash(k === &quot;rand&quot; ? [8, 6] : []);
       ctx.globalAlpha = active || show.length === 1 ? 1 : 0.75;
       ctx.beginPath();
@@ -1591,7 +1692,7 @@
     ctx.globalAlpha = 1; ctx.setLineDash([]);
     cities.forEach((c, i) =&gt; {
       ctx.beginPath(); ctx.arc(c.x, c.y, i === 0 ? 11 : 8, 0, Math.PI * 2);
-      ctx.fillStyle = i === 0 ? &quot;#4c1130&quot; : &quot;#1f2937&quot;; ctx.fill();
+      ctx.fillStyle = isHC() ? (i === 0 ? &quot;#ffd400&quot; : &quot;#ffffff&quot;) : (i === 0 ? &quot;#4c1130&quot; : &quot;#1f2937&quot;); ctx.fill();
       if (i === 0) { ctx.fillStyle = &quot;#fff&quot;; ctx.font = &quot;bold 11px Fredoka&quot;; ctx.textAlign = &quot;center&quot;; ctx.fillText(&quot;🏠&quot;, c.x, c.y + 4); }
     });
   }
@@ -1696,6 +1797,15 @@
   document.getElementById(&quot;nCities&quot;).onchange = newCities;
   newCities();
 
+
+  // High contrast: switched on by the hub (postMessage works even in sandboxed previews)
+  window.addEventListener(&quot;message&quot;, e =&gt; {
+    if (e.data &amp;&amp; typeof e.data.hc === &quot;boolean&quot;) {
+      document.body.classList.toggle(&quot;hc&quot;, e.data.hc);
+      draw();
+    }
+  });
+
   // ---------------- Slide 7: self-mark ----------------
   const boxes = [...document.querySelectorAll(&quot;.check input&quot;)];
   boxes.forEach(b =&gt; b.onchange = () =&gt; {
@@ -1722,6 +1832,23 @@
     try { f.focus(); f.contentWindow.focus(); } catch (e) {}   // so the arrow keys work straight away
   }
   document.querySelectorAll(".tab").forEach(t => t.onclick = () => show(t.dataset.view));
+
+  // High contrast: tell every section to switch (postMessage works even in protected previews)
+  let hc = false;
+  try { hc = localStorage.getItem("hubHighContrast") === "1"; } catch (e) {}
+  const hcBtn = document.getElementById("hcBtn");
+  function applyHC() {
+    hcBtn.setAttribute("aria-pressed", hc);
+    hcBtn.textContent = hc ? "High contrast: ON" : "High contrast";
+    document.querySelectorAll("iframe").forEach(f => { try { f.contentWindow.postMessage({ hc }, "*"); } catch (e) {} });
+  }
+  hcBtn.onclick = () => {
+    hc = !hc;
+    try { localStorage.setItem("hubHighContrast", hc ? "1" : "0"); } catch (e) {}
+    applyHC();
+  };
+  document.querySelectorAll("iframe").forEach(f => f.addEventListener("load", applyHC));
+  applyHC();
 </script>
 </body>
 </html>

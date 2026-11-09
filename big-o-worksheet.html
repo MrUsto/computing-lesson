@@ -18,7 +18,51 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{font-family:'Lexend',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:16px;padding-bottom:84px}
-body.contrast{--bg:#fff;--line:#555;--muted:#333;--maroon-soft:#fff}
+/* High contrast: dark background, light text, bold borders (visual impairment support) */
+body.contrast{--bg:#000;--panel:#000;--ink:#fff;--muted:#fff;--line:#fff;--maroon:#ffd400;--maroon-2:#ffd400;--maroon-soft:#222;
+  --green:#00e676;--green-soft:#002b14;--red:#ff5252;--red-soft:#3a0000;--amber:#ffd400;--amber-soft:#2b2400;--focus:#4dd0ff}
+body.contrast .panel,body.contrast .bin,body.contrast .talk{border-width:3px}
+body.contrast .card,body.contrast .choice,body.contrast .ind button,body.contrast .name-row input{background:#000;color:#fff;border-width:3px}
+body.contrast .card.code{font-size:.95rem}
+body.contrast .pool{background:#111;border:2px dashed #fff}
+body.contrast .slot,body.contrast .bin{background:#000}
+body.contrast .slot:not(.filled)::before,body.contrast .prow .ln{color:#ccc}
+body.contrast .card .exam{background:#4dd0ff;color:#000}
+body.contrast .tip{color:#4dd0ff}
+body.contrast .card.corrected{color:#00e676}
+body.contrast .card.revealed{background:#000;color:#ccc;border-color:#ccc}
+body.contrast .card.revealed::after{color:#ccc}
+body.contrast .over,body.contrast .slot.over,body.contrast .pool.over,body.contrast .bin.over{background:#332b00 !important}
+body.contrast .btn{background:#000;color:#fff;border:3px solid #fff}
+body.contrast .btn.primary{background:#ffd400;color:#000;border-color:#ffd400}
+body.contrast .btn.ghosty{color:#fff;border-color:#fff}
+body.contrast .bar{background:#000;border-top:3px solid #fff}
+body.contrast .choice.on{background:#ffd400;color:#000}
+body.contrast .stems span,body.contrast .panel h3 .tag{background:#ffd400;color:#000}
+body.contrast .tools button[aria-pressed="true"]{background:#ffd400;color:#000;border-color:#ffd400}
+body.contrast .lead,body.contrast .sub,body.contrast .bar .mid{font-weight:500}
+body.contrast #steps button{color:#fff;background:rgba(255,255,255,.22)}
+body.contrast .graph-wrap svg text{font-size:12px}
+body.contrast .graph-wrap .cap{font-size:.95rem}
+/* graph and map drawings */
+body.contrast .graph-wrap svg line[stroke="#eee3e8"]{stroke:#444}
+body.contrast .graph-wrap svg line[stroke="#8a7d84"]{stroke:#fff;stroke-width:3}
+body.contrast .graph-wrap svg text{fill:#fff;font-weight:600}
+body.contrast .graph-wrap svg path{stroke-width:5}
+body.contrast .graph-wrap svg [data-k="1"]{stroke:#fff;fill:#fff}
+body.contrast .graph-wrap svg [data-k="logn"]{stroke:#4dd0ff;fill:#4dd0ff}
+body.contrast .graph-wrap svg [data-k="n"]{stroke:#00e676;fill:#00e676}
+body.contrast .graph-wrap svg [data-k="nlogn"]{stroke:#ff66e0;fill:#ff66e0}
+body.contrast .graph-wrap svg [data-k="n2"]{stroke:#ffd400;fill:#ffd400}
+body.contrast .graph-wrap svg [data-k="2n"]{stroke:#ff5252;fill:#ff5252}
+body.contrast .graph-wrap svg [data-k="fact"]{stroke:#ff9f1a;fill:#ff9f1a}
+body.contrast .graph-wrap svg path[data-k]{fill:none}
+body.contrast .graph-wrap svg text[data-k]{stroke:none;font-size:13px}
+body.contrast svg rect[fill="#f4e9ef"]{fill:#000;stroke:#fff;stroke-width:2}
+body.contrast svg path[stroke="#b98fa5"]{stroke:#fff;stroke-width:3}
+body.contrast svg circle{fill:#fff}
+body.contrast svg circle:first-of-type{fill:#ffd400}
+body.contrast svg text[fill="#4f1434"]{fill:#ffd400;font-weight:700}
 button{font:inherit}
 h1,h2,h3{line-height:1.2;margin:0}
 .top{background:#001C54;color:#fff;padding:14px 20px 10px;border-left:8px solid #EC1C24}
@@ -562,14 +606,14 @@ function makeGraph(){
       var p = [X(nn), Y(v)]; d += (d ? ' L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); last = p;
     }
     var path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d', d); path.setAttribute('fill','none'); path.setAttribute('stroke', cv.col); path.setAttribute('stroke-width','2.6'); path.setAttribute('stroke-linecap','round');
+    path.setAttribute('d', d); path.setAttribute('data-k', key); path.setAttribute('fill','none'); path.setAttribute('stroke', cv.col); path.setAttribute('stroke-width','2.6'); path.setAttribute('stroke-linecap','round');
     path.setAttribute('pathLength','1'); path.style.strokeDasharray = '1'; path.style.strokeDashoffset = '1'; path.style.transition = 'stroke-dashoffset 1.1s ease';
     gEl.appendChild(path);
     var lx = Math.min(last[0] + 4, R - 50), ly = Math.max(last[1] - 4, T + 10);
     if (key === '1') { lx = R - 30; ly = Y(1) - 5; }
     if (key === 'logn') { lx = X(7.5); ly = Y(Math.log2(7.5)) - 7; }
     var t = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x', lx); t.setAttribute('y', ly); t.setAttribute('font-size','10.5'); t.setAttribute('font-weight','600'); t.setAttribute('fill', cv.col); t.setAttribute('font-family','Lexend');
+    t.setAttribute('x', lx); t.setAttribute('y', ly); t.setAttribute('data-k', key); t.setAttribute('font-size','10.5'); t.setAttribute('font-weight','600'); t.setAttribute('fill', cv.col); t.setAttribute('font-family','Lexend');
     t.textContent = cv.name; gEl.appendChild(t);
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ path.style.strokeDashoffset = '0'; }); });
   } };
@@ -939,7 +983,17 @@ document.getElementById('skipBtn').addEventListener('click', function(){
 });
 document.getElementById('nextBtn').addEventListener('click', function(){ go(cur + 1); });
 document.getElementById('bigBtn').addEventListener('click', function(){ var on = document.body.classList.toggle('big'); this.setAttribute('aria-pressed', on); });
-document.getElementById('contrastBtn').addEventListener('click', function(){ var on = document.body.classList.toggle('contrast'); this.setAttribute('aria-pressed', on); });
+(function(){
+  // High contrast is shared with the homepage and lesson hub (same setting on the same website)
+  var btn = document.getElementById('contrastBtn');
+  function set(on){ document.body.classList.toggle('contrast', on); btn.setAttribute('aria-pressed', on); btn.textContent = on ? 'High contrast: ON' : 'High contrast'; }
+  var saved = false; try { saved = localStorage.getItem('hubHighContrast') === '1'; } catch(e){}
+  set(saved);
+  btn.addEventListener('click', function(){
+    var on = !document.body.classList.contains('contrast'); set(on);
+    try { localStorage.setItem('hubHighContrast', on ? '1' : '0'); } catch(e){}
+  });
+})();
 refreshNav();
 
 // test hook
