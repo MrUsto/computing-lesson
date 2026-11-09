@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computing Lessons</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#001C54; --red:#EC1C24; --bg:#f5f7fb; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Fredoka",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:var(--navy);color:#fff;border-left:10px solid var(--red);padding:28px 24px}
+  .wrap{max-width:1000px;margin:0 auto}
+  header h1{margin:0;font-size:clamp(1.8rem,4vw,2.6rem)}
+  header p{margin:6px 0 0;opacity:.85;font-size:1.1rem}
+  main{padding:32px 24px 48px}
+  h2{font-size:1.2rem;color:var(--navy);margin:0 0 14px;text-transform:uppercase;letter-spacing:.06em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+  .card{display:flex;flex-direction:column;background:#fff;border:2px solid var(--line);border-radius:18px;padding:22px;
+        text-decoration:none;color:inherit;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--red)}
+  .card:hover,.card:focus-visible{transform:translateY(-4px);border-color:var(--navy);box-shadow:0 10px 24px rgba(0,28,84,.15);outline:none}
+  .icon{font-size:2.4rem;line-height:1}
+  .card h3{margin:10px 0 6px;font-size:1.4rem;color:var(--navy)}
+  .card p{margin:0 0 14px;color:var(--muted);line-height:1.45}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+  .tag{font-size:.8rem;font-weight:600;background:#e8edf7;color:var(--navy);border-radius:999px;padding:3px 10px}
+  .go{margin-top:14px;font-weight:700;color:var(--red)}
+  footer{text-align:center;color:var(--muted);font-size:.9rem;padding:0 24px 30px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>💻 Computing Lessons</h1>
+    <p>Interactive resources for computer science. Pick an activity to get started.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <h2>Algorithms &amp; complexity</h2>
+  <div class="grid">
+
+    <a class="card" href="big-o-worksheet.html">
+      <div class="icon">📝</div>
+      <h3>Big O &amp; Tractability</h3>
+      <p>An interactive worksheet: predict, sort growth rates, solve Parsons puzzles and decide which problems are tractable.</p>
+      <div class="tags"><span class="tag">Worksheet</span><span class="tag">A-level</span><span class="tag">Big O</span></div>
+      <div class="go">Open worksheet →</div>
+    </a>
+
+    <a class="card" href="algorithms-lesson-hub.html">
+      <div class="icon">📊</div>
+      <h3>Algorithms &amp; Complexity Hub</h3>
+      <p>Step-by-step visuals of merge sort and bubble sort, plus interactive slides on intractable problems and heuristics.</p>
+      <div class="tags"><span class="tag">Visualiser</span><span class="tag">Sorting</span><span class="tag">Heuristics</span></div>
+      <div class="go">Open hub →</div>
+    </a>
+
+    <!--
+      TO ADD A NEW RESOURCE:
+      1. Upload the new .html file to this repository.
+      2. Copy one of the <a class="card"> ... </a> blocks above and paste it here.
+      3. Change the href (the file name), the icon, title, description and tags.
+    -->
+
+  </div>
+</main>
+
+<footer>Tip: bookmark this page. New resources will appear here.</footer>
+
+</body>
+</html>

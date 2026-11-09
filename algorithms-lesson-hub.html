@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithms & Complexity – Lesson Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:"Fredoka",system-ui,sans-serif;background:#1f1f1f}
+  .hub{height:100%;display:flex;flex-direction:column}
+  header{background:#001C54;color:#fff;display:flex;align-items:center;gap:16px;padding:8px 16px 8px 22px;flex-wrap:wrap;
+          border-left:8px solid #EC1C24}
+  header h1{margin:0;font-size:clamp(1rem,2vw,1.35rem);font-weight:700;margin-right:auto}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{font:inherit;font-weight:600;font-size:clamp(.8rem,1.3vw,1rem);border:2px solid #fff;background:transparent;color:#fff;
+        border-radius:999px;padding:6px 16px;cursor:pointer}
+  .tab:hover{background:rgba(255,255,255,.15)}
+  .tab.active{background:#fff;color:#001C54;box-shadow:inset 0 -4px 0 #EC1C24}
+  .frames{flex:1;position:relative}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#f8fafc}
+  iframe.active{display:block}
+</style>
+</head>
+<body>
+<div class="hub">
+  <header>
+    <h1>📊 Algorithms &amp; Complexity</h1>
+    <nav class="tabs">
+      <button class="tab active" data-view="merge">🔀 Merge sort · O(n log n)</button>
+      <button class="tab" data-view="bubble">🫧 Bubble sort · O(n²)</button>
+      <button class="tab" data-view="heur">🧭 Intractable problems &amp; heuristics</button>
+    </nav>
+  </header>
+  <div class="frames">
+    <iframe id="merge" class="active" title="Merge sort" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Merge Sort – Where does n log n come from?&lt;/title&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root{
+    --bg:#f8fafc; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --panel:#ffffff;
+    --split:#2563eb; --split-bg:#dbeafe; --merge:#16a34a; --merge-bg:#dcfce7;
+    --bad:#dc2626; --bad-bg:#fee2e2; --accent:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:&quot;Fredoka&quot;,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:20px 24px 4px;text-align:center}
+  header h1{margin:0;font-size:clamp(1.6rem,3.5vw,2.4rem)}
+  header p{margin:6px 0 0;color:var(--muted);font-size:1.1rem}
+  .mono{font-family:&quot;JetBrains Mono&quot;,monospace}
+  main{max-width:1200px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:18px}
+
+  /* ---------- Visual ---------- */
+  .row{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:10px;padding:6px 0;transition:opacity .4s}
+  .row.hidden{opacity:0;pointer-events:none}
+  .row.current .label{color:var(--ink);font-weight:700}
+  .label{font-size:.9rem;color:var(--muted);line-height:1.2}
+  .label b{display:block;font-size:1rem}
+  .groups{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+  .group{display:flex;gap:4px;padding:5px;border-radius:12px;border:2px solid}
+  .split .group{border-color:var(--split);background:var(--split-bg)}
+  .merge .group{border-color:var(--merge);background:var(--merge-bg)}
+  .cell{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+        font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;color:#fff;font-size:1.05rem;
+        box-shadow:0 2px 0 rgba(0,0,0,.15)}
+  .row.current .cell{animation:pop .45s ease}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.95rem;margin:6px 0}
+  .divider::before,.divider::after{content:&quot;&quot;;flex:1;height:2px;background:var(--line)}
+  .divider.hidden{opacity:0}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  button{font:inherit;font-weight:600;font-size:1rem;border:2px solid var(--ink);border-radius:12px;padding:9px 16px;cursor:pointer;background:#fff}
+  button.primary{background:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .progress{display:flex;gap:6px;justify-content:center;margin-top:12px}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+  .dot.on{background:var(--ink)}
+
+  /* ---------- Explanation ---------- */
+  .step-title{font-size:1.35rem;margin:0 0 8px}
+  .explain{font-size:1.08rem;line-height:1.55;min-height:150px}
+  .tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:600;margin-bottom:8px}
+  .tag.split{background:var(--split-bg);color:var(--split)}
+  .tag.merge{background:var(--merge-bg);color:var(--merge)}
+  .tag.sum{background:#fef3c7;color:#92400e}
+
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .meter{border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+  .meter .big{font-size:2rem;font-weight:700;font-family:&quot;JetBrains Mono&quot;,monospace}
+  .meter small{color:var(--muted)}
+  .formula{margin-top:12px;font-family:&quot;JetBrains Mono&quot;,monospace;font-size:1.05rem;background:#0f172a;color:#e2e8f0;
+           border-radius:12px;padding:12px;text-align:center}
+  .formula .hl{color:#fbbf24;font-weight:700}
+
+  /* ---------- Compare ---------- */
+  .compare{grid-column:1 / -1}
+  .bars{margin-top:10px;display:grid;gap:10px}
+  .bar-row{display:grid;grid-template-columns:170px 1fr 140px;align-items:center;gap:10px}
+  @media(max-width:600px){.bar-row{grid-template-columns:110px 1fr 90px}}
+  .track{height:30px;background:var(--line);border-radius:10px;overflow:hidden}
+  .fill{height:100%;border-radius:10px;transition:width .5s}
+  .fill.good{background:var(--merge)} .fill.bad{background:var(--bad)}
+  .num{font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;text-align:right}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .verdict{margin-top:12px;font-size:1.15rem;text-align:center}
+  .verdict b{color:var(--bad)}
+  .note{color:var(--muted);font-size:.9rem;margin-top:8px}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;justify-content:center;gap:10px;padding:16px 16px 0;flex-wrap:wrap}
+  .tab{border-radius:999px}
+  .tab.active{background:var(--ink);color:#fff}
+  .tabpage{display:none}
+  .tabpage.active{display:block}
+
+  /* ---------- Bubble sort ---------- */
+  .bars-area{height:260px;display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:10px;border-bottom:3px solid var(--line)}
+  .bbar{width:52px;border-radius:10px 10px 4px 4px;background:#94a3b8;display:flex;align-items:flex-start;justify-content:center;
+        color:#fff;font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;padding-top:6px;transition:height .3s,background .2s}
+  .bbar.cmp{background:#f59e0b} .bbar.swp{background:#dc2626} .bbar.done{background:#16a34a}
+  .legend{display:flex;gap:16px;justify-content:center;margin-top:8px;color:var(--muted);font-size:.9rem}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .codebox{margin-top:14px;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:12px;font-family:&quot;JetBrains Mono&quot;,monospace;
+           font-size:.92rem;line-height:1.7;overflow-x:auto}
+  .codebox .ln{display:block;border-radius:6px;padding:0 6px;white-space:pre}
+  .codebox .ln.on{background:#334155}
+  .k{color:#f472b6} .c{color:#64748b}
+  .gridwrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+  @media(max-width:700px){.gridwrap{grid-template-columns:1fr}}
+  .cgrid{display:grid;grid-template-columns:repeat(8,34px);gap:4px}
+  .gcell{width:34px;height:34px;border-radius:6px;background:var(--line);transition:background .3s}
+  .gcell.slot{background:#fde68a}
+  .gcell.fill{background:#dc2626}
+  .gridtext p{margin:6px 0;font-size:1.05rem}
+&lt;/style&gt;
+
+&lt;style&gt;
+  nav.tabs{display:none !important}
+  header h1{color:#4c1130}
+  button.primary{background:#4c1130;color:#fff;border-color:#4c1130}
+  input[type=range]{accent-color:#4c1130}
+  .formula .hl{color:#fbbf24}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;nav class=&quot;tabs&quot;&gt;
+  &lt;button class=&quot;tab active&quot; data-tab=&quot;mergeTab&quot;&gt;🔀 Merge sort · O(n log n)&lt;/button&gt;
+  &lt;button class=&quot;tab&quot; data-tab=&quot;bubbleTab&quot;&gt;🫧 Bubble sort · O(n²)&lt;/button&gt;
+&lt;/nav&gt;
+
+&lt;section id=&quot;mergeTab&quot; class=&quot;tabpage active&quot;&gt;
+&lt;header&gt;
+  &lt;h1&gt;🔀 Merge Sort: where does &lt;span class=&quot;mono&quot;&gt;n log n&lt;/span&gt; come from?&lt;/h1&gt;
+  &lt;p&gt;Sorting 8 items, step by step.&lt;/p&gt;
+&lt;/header&gt;
+
+&lt;main&gt;
+  &lt;!-- ================= Visual ================= --&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div id=&quot;visual&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;controls&quot;&gt;
+      &lt;button id=&quot;backBtn&quot;&gt;◀ Back&lt;/button&gt;
+      &lt;button id=&quot;nextBtn&quot; class=&quot;primary&quot;&gt;Next ▶&lt;/button&gt;
+      &lt;button id=&quot;playBtn&quot;&gt;⏵ Play all&lt;/button&gt;
+      &lt;button id=&quot;resetBtn&quot;&gt;↺ Reset&lt;/button&gt;
+      &lt;button id=&quot;shuffleBtn&quot;&gt;🎲 New numbers&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;progress&quot; id=&quot;progress&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- ================= Explanation ================= --&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div id=&quot;tag&quot;&gt;&lt;/div&gt;
+    &lt;h2 class=&quot;step-title&quot; id=&quot;stepTitle&quot;&gt;&lt;/h2&gt;
+    &lt;div class=&quot;explain&quot; id=&quot;explain&quot;&gt;&lt;/div&gt;
+
+    &lt;div class=&quot;meters&quot;&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;levelsMeter&quot;&gt;0&lt;/div&gt;&lt;small&gt;split levels&lt;br&gt;(this is &lt;b&gt;log n&lt;/b&gt;)&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;workMeter&quot;&gt;0&lt;/div&gt;&lt;small&gt;work done&lt;br&gt;(items handled)&lt;/small&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;formula&quot; id=&quot;formula&quot;&gt;n × log n = 8 × ? = ?&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- ================= Compare ================= --&gt;
+  &lt;div class=&quot;panel compare&quot;&gt;
+    &lt;h2 class=&quot;step-title&quot;&gt;📈 Why it matters: merge sort vs bubble sort&lt;/h2&gt;
+    &lt;p class=&quot;note&quot; style=&quot;margin-top:0&quot;&gt;Drag the slider to make the list bigger and compare the amount of work.&lt;/p&gt;
+    &lt;label for=&quot;nSlider&quot;&gt;&lt;b&gt;Number of items: &lt;span class=&quot;mono&quot; id=&quot;nLabel&quot;&gt;8&lt;/span&gt;&lt;/b&gt;&lt;/label&gt;
+    &lt;input type=&quot;range&quot; id=&quot;nSlider&quot; min=&quot;3&quot; max=&quot;20&quot; value=&quot;3&quot;&gt;
+    &lt;div class=&quot;bars&quot;&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;Merge sort&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;O(n log n)&lt;/span&gt;&lt;/span&gt;
+        &lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill good&quot; id=&quot;goodBar&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot; id=&quot;goodNum&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;Bubble sort&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;O(n²)&lt;/span&gt;&lt;/span&gt;
+        &lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; id=&quot;badBar&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot; id=&quot;badNum&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;verdict&quot; id=&quot;verdict&quot;&gt;&lt;/div&gt;
+    &lt;p class=&quot;note&quot;&gt;Bars use a logarithmic scale for large lists, otherwise the merge sort bar would be too small to see!&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/main&gt;
+&lt;/section&gt;
+
+&lt;!-- ======================= BUBBLE SORT TAB ======================= --&gt;
+&lt;section id=&quot;bubbleTab&quot; class=&quot;tabpage&quot;&gt;
+&lt;header&gt;
+  &lt;h1&gt;🫧 Bubble Sort: why is it &lt;span class=&quot;mono&quot;&gt;O(n²)&lt;/span&gt;?&lt;/h1&gt;
+  &lt;p&gt;Compare neighbours, swap if they&#x27;re in the wrong order, repeat.&lt;/p&gt;
+&lt;/header&gt;
+&lt;main&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;bars-area&quot; id=&quot;bArea&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;legend&quot;&gt;
+      &lt;span&gt;&lt;i style=&quot;background:#f59e0b&quot;&gt;&lt;/i&gt;comparing&lt;/span&gt;
+      &lt;span&gt;&lt;i style=&quot;background:#dc2626&quot;&gt;&lt;/i&gt;swapping&lt;/span&gt;
+      &lt;span&gt;&lt;i style=&quot;background:#16a34a&quot;&gt;&lt;/i&gt;in final place&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;controls&quot;&gt;
+      &lt;button id=&quot;bBack&quot;&gt;◀ Back&lt;/button&gt;
+      &lt;button id=&quot;bNext&quot; class=&quot;primary&quot;&gt;Next ▶&lt;/button&gt;
+      &lt;button id=&quot;bPlay&quot;&gt;⏵ Play&lt;/button&gt;
+      &lt;button id=&quot;bReset&quot;&gt;↺ Reset&lt;/button&gt;
+      &lt;button id=&quot;bRandom&quot;&gt;🎲 Random&lt;/button&gt;
+      &lt;button id=&quot;bWorst&quot;&gt;⬇ Worst case&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;label class=&quot;note&quot; style=&quot;display:block;text-align:center;margin-top:10px&quot;&gt;Speed
+      &lt;input type=&quot;range&quot; id=&quot;bSpeed&quot; min=&quot;100&quot; max=&quot;1500&quot; value=&quot;700&quot; style=&quot;width:160px;vertical-align:middle;direction:rtl&quot;&gt;
+    &lt;/label&gt;
+
+    &lt;div class=&quot;codebox&quot; id=&quot;bCode&quot;&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;1&quot;&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; i &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; range(n - 1):            &lt;span class=&quot;c&quot;&gt;# outer loop: one pass each time&lt;/span&gt;&lt;/span&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;2&quot;&gt;    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; j &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; range(n - 1 - i):    &lt;span class=&quot;c&quot;&gt;# inner loop: compare neighbours&lt;/span&gt;&lt;/span&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;3&quot;&gt;        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; items[j] &gt; items[j + 1]:&lt;/span&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;4&quot;&gt;            items[j], items[j + 1] = items[j + 1], items[j]   &lt;span class=&quot;c&quot;&gt;# swap&lt;/span&gt;&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div id=&quot;bTag&quot;&gt;&lt;/div&gt;
+    &lt;h2 class=&quot;step-title&quot; id=&quot;bTitle&quot;&gt;&lt;/h2&gt;
+    &lt;div class=&quot;explain&quot; id=&quot;bExplain&quot; style=&quot;min-height:110px&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;meters&quot; style=&quot;grid-template-columns:1fr 1fr 1fr&quot;&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;bPass&quot;&gt;0&lt;/div&gt;&lt;small&gt;pass&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;bComp&quot;&gt;0&lt;/div&gt;&lt;small&gt;comparisons&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;bSwaps&quot;&gt;0&lt;/div&gt;&lt;small&gt;swaps&lt;/small&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;formula&quot; id=&quot;bFormula&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel compare&quot;&gt;
+    &lt;h2 class=&quot;step-title&quot;&gt;🟧 The comparison grid: why it&#x27;s &quot;about n²&quot;&lt;/h2&gt;
+    &lt;p class=&quot;note&quot; style=&quot;margin-top:0&quot;&gt;Each square is one comparison. Row 1 is pass 1, row 2 is pass 2, and so on. Watch the squares fill as the sort runs.&lt;/p&gt;
+    &lt;div class=&quot;gridwrap&quot;&gt;
+      &lt;div class=&quot;cgrid&quot; id=&quot;cGrid&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;gridtext&quot;&gt;
+        &lt;p&gt;Pass 1 makes &lt;b&gt;7&lt;/b&gt; comparisons, pass 2 makes &lt;b&gt;6&lt;/b&gt;, then 5, 4, 3, 2, 1.&lt;/p&gt;
+        &lt;p class=&quot;mono&quot; style=&quot;font-size:1.1rem&quot;&gt;7+6+5+4+3+2+1 = &lt;b&gt;28&lt;/b&gt;&lt;/p&gt;
+        &lt;p&gt;The filled squares make a &lt;b&gt;triangle&lt;/b&gt;: about &lt;b&gt;half&lt;/b&gt; of an n × n square.&lt;/p&gt;
+        &lt;p class=&quot;mono&quot; style=&quot;font-size:1.1rem&quot;&gt;n(n − 1) ÷ 2 = (n² − n) ÷ 2&lt;/p&gt;
+        &lt;p&gt;Big O rules:&lt;br&gt;1️⃣ keep the fastest-growing term → &lt;span class=&quot;mono&quot;&gt;n²&lt;/span&gt;&lt;br&gt;2️⃣ drop the constant ÷ 2 →
+          &lt;b class=&quot;mono&quot; style=&quot;font-size:1.3rem&quot;&gt;O(n²)&lt;/b&gt;&lt;/p&gt;
+        &lt;p class=&quot;note&quot;&gt;💡 The &lt;b&gt;nested loops&lt;/b&gt; are the clue: a loop inside a loop, and both depend on n.&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;bars&quot; style=&quot;margin-top:18px&quot;&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;8 items&lt;/span&gt;&lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; style=&quot;width:0.28%&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot;&gt;28&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;100 items&lt;/span&gt;&lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; style=&quot;width:4.95%&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot;&gt;4,950&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;1,000 items&lt;/span&gt;&lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; style=&quot;width:100%&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot;&gt;499,500&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;p class=&quot;note&quot;&gt;10× more items → about &lt;b&gt;100× more comparisons&lt;/b&gt;. That&#x27;s what n² growth feels like.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/main&gt;
+&lt;/section&gt;
+
+&lt;script&gt;
+  const N = 8;
+  let values = [38, 27, 43, 3, 9, 82, 10, 5];
+  let splitRows = [], mergeRows = [];
+  let step = 0, playing = null;
+
+  // ---------- Build the split and merge levels ----------
+  function build() {
+    splitRows = [[values.slice()]];
+    while (splitRows[splitRows.length - 1].some(g =&gt; g.length &gt; 1)) {
+      const prev = splitRows[splitRows.length - 1];
+      splitRows.push(prev.flatMap(g =&gt; {
+        if (g.length === 1) return [g];
+        const mid = Math.ceil(g.length / 2);
+        return [g.slice(0, mid), g.slice(mid)];
+      }));
+    }
+    mergeRows = [];
+    let current = splitRows[splitRows.length - 1];
+    while (current.length &gt; 1) {
+      const next = [];
+      for (let i = 0; i &lt; current.length; i += 2) {
+        next.push(i + 1 &lt; current.length ? merge(current[i], current[i + 1]) : current[i]);
+      }
+      mergeRows.push(next);
+      current = next;
+    }
+  }
+  function merge(a, b) {
+    const out = []; let i = 0, j = 0;
+    while (i &lt; a.length &amp;&amp; j &lt; b.length) out.push(a[i] &lt;= b[j] ? a[i++] : b[j++]);
+    return out.concat(a.slice(i), b.slice(j));
+  }
+
+  // Colour each number by its size: small = cool, big = warm
+  function colour(v) {
+    const min = Math.min(...values), max = Math.max(...values);
+    const t = max === min ? 0.5 : (v - min) / (max - min);
+    return `hsl(${220 - t * 200}, 70%, 50%)`;
+  }
+
+  // ---------- Steps (one per frame) ----------
+  const LOG = Math.log2(N); // 3
+  function steps() {
+    return [
+      { kind: &quot;split&quot;, show: 0, title: &quot;The unsorted list&quot;,
+        text: `We have &lt;b&gt;n = 8&lt;/b&gt; numbers to sort. Merge sort works in two parts:&lt;br&gt;
+               &lt;b style=&quot;color:var(--split)&quot;&gt;1. Split&lt;/b&gt; the list in half again and again.&lt;br&gt;
+               &lt;b style=&quot;color:var(--merge)&quot;&gt;2. Merge&lt;/b&gt; the pieces back together in order.` },
+      { kind: &quot;split&quot;, show: 1, title: &quot;Split level 1&quot;,
+        text: `Cut the list in half: &lt;b&gt;8 → 4 + 4&lt;/b&gt;.&lt;br&gt;Each half is now a smaller sorting problem.` },
+      { kind: &quot;split&quot;, show: 2, title: &quot;Split level 2&quot;,
+        text: `Cut each half in half again: &lt;b&gt;4 → 2 + 2&lt;/b&gt;.` },
+      { kind: &quot;split&quot;, show: 3, title: &quot;Split level 3: single items&quot;,
+        text: `Now every piece holds &lt;b&gt;1 item&lt;/b&gt; – and a list of 1 item is already sorted!&lt;br&gt;&lt;br&gt;
+               We halved &lt;b&gt;3 times&lt;/b&gt;: 8 → 4 → 2 → 1.&lt;br&gt;That&#x27;s &lt;b&gt;log₂ 8 = 3&lt;/b&gt;, because 2³ = 8.
+               &lt;br&gt;👉 &lt;b&gt;This is where log n comes from.&lt;/b&gt;` },
+      { kind: &quot;merge&quot;, show: 4, title: &quot;Merge level 1: pairs&quot;,
+        text: `Merge the single items into &lt;b&gt;sorted pairs&lt;/b&gt;, always taking the smaller front item first.&lt;br&gt;&lt;br&gt;
+               All &lt;b&gt;8 items&lt;/b&gt; are handled at this level.` },
+      { kind: &quot;merge&quot;, show: 5, title: &quot;Merge level 2: fours&quot;,
+        text: `Merge the pairs into &lt;b&gt;sorted groups of 4&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               Again, all &lt;b&gt;8 items&lt;/b&gt; are handled.` },
+      { kind: &quot;merge&quot;, show: 6, title: &quot;Merge level 3: sorted! ✅&quot;,
+        text: `Merge the two groups of 4 into &lt;b&gt;one sorted list&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               All &lt;b&gt;8 items&lt;/b&gt; handled again.&lt;br&gt;👉 &lt;b&gt;Every level touches all n items. This is where the n comes from.&lt;/b&gt;` },
+      { kind: &quot;sum&quot;, show: 6, title: &quot;Putting it together&quot;,
+        text: `&lt;b&gt;3 levels&lt;/b&gt; (log n) × &lt;b&gt;8 items per level&lt;/b&gt; (n) = &lt;b&gt;24 steps&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               Bubble sort compares items over and over: about &lt;b&gt;8 × 8 = 64 steps&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               Small difference with 8 items… now try the slider below with a &lt;b&gt;million&lt;/b&gt;!` }
+    ];
+  }
+
+  // ---------- Render ----------
+  function rowHTML(groups, kind, label, sub, visible, current) {
+    const gs = groups.map(g =&gt; `&lt;div class=&quot;group&quot;&gt;${
+      g.map(v =&gt; `&lt;div class=&quot;cell&quot; style=&quot;background:${colour(v)}&quot;&gt;${v}&lt;/div&gt;`).join(&quot;&quot;)}&lt;/div&gt;`).join(&quot;&quot;);
+    return `&lt;div class=&quot;row ${kind} ${visible ? &quot;&quot; : &quot;hidden&quot;} ${current ? &quot;current&quot; : &quot;&quot;}&quot;&gt;
+      &lt;div class=&quot;label&quot;&gt;&lt;b&gt;${label}&lt;/b&gt;${sub}&lt;/div&gt;&lt;div class=&quot;groups&quot;&gt;${gs}&lt;/div&gt;&lt;/div&gt;`;
+  }
+
+  function render() {
+    const s = steps()[step];
+    const v = document.getElementById(&quot;visual&quot;);
+    let html = &quot;&quot;;
+    splitRows.forEach((r, i) =&gt; {
+      html += rowHTML(r, &quot;split&quot;, i === 0 ? &quot;Start&quot; : `Split ${i}`,
+        i === 0 ? &quot;1 list&quot; : `${r.length} pieces`, s.show &gt;= i, s.show === i &amp;&amp; s.kind === &quot;split&quot;);
+    });
+    html += `&lt;div class=&quot;divider ${s.show &gt;= 4 ? &quot;&quot; : &quot;hidden&quot;}&quot;&gt;now merge back up ⬇&lt;/div&gt;`;
+    mergeRows.forEach((r, i) =&gt; {
+      const idx = splitRows.length + i;
+      html += rowHTML(r, &quot;merge&quot;, `Merge ${i + 1}`, `8 items handled`,
+        s.show &gt;= idx, s.show === idx &amp;&amp; s.kind === &quot;merge&quot;);
+    });
+    v.innerHTML = html;
+
+    // Explanation panel
+    const tagText = { split: &quot;✂️ Splitting&quot;, merge: &quot;🔗 Merging&quot;, sum: &quot;🧮 Summary&quot; }[s.kind];
+    document.getElementById(&quot;tag&quot;).innerHTML = `&lt;span class=&quot;tag ${s.kind}&quot;&gt;${tagText}&lt;/span&gt;`;
+    document.getElementById(&quot;stepTitle&quot;).textContent = s.title;
+    document.getElementById(&quot;explain&quot;).innerHTML = s.text;
+
+    const levels = Math.min(s.show, LOG);
+    const mergesDone = Math.max(0, s.show - LOG);
+    const work = mergesDone * N;
+    document.getElementById(&quot;levelsMeter&quot;).textContent = levels;
+    document.getElementById(&quot;workMeter&quot;).textContent = work;
+
+    const parts = Array.from({ length: mergesDone }, () =&gt; N).join(&quot; + &quot;) || &quot;0&quot;;
+    document.getElementById(&quot;formula&quot;).innerHTML = mergesDone === LOG
+      ? `n × log n = 8 × 3 = &lt;span class=&quot;hl&quot;&gt;24&lt;/span&gt;&lt;br&gt;&lt;small&gt;(${parts})&lt;/small&gt;`
+      : `work so far: ${parts}${mergesDone ? &quot; = &quot; + work : &quot;&quot;}`;
+
+    document.getElementById(&quot;progress&quot;).innerHTML =
+      steps().map((_, i) =&gt; `&lt;div class=&quot;dot ${i &lt;= step ? &quot;on&quot; : &quot;&quot;}&quot;&gt;&lt;/div&gt;`).join(&quot;&quot;);
+    document.getElementById(&quot;backBtn&quot;).disabled = step === 0;
+    document.getElementById(&quot;nextBtn&quot;).disabled = step === steps().length - 1;
+  }
+
+  // ---------- Controls ----------
+  function stopPlay() { clearInterval(playing); playing = null; document.getElementById(&quot;playBtn&quot;).textContent = &quot;⏵ Play all&quot;; }
+  document.getElementById(&quot;nextBtn&quot;).onclick = () =&gt; { stopPlay(); if (step &lt; steps().length - 1) { step++; render(); } };
+  document.getElementById(&quot;backBtn&quot;).onclick = () =&gt; { stopPlay(); if (step &gt; 0) { step--; render(); } };
+  document.getElementById(&quot;resetBtn&quot;).onclick = () =&gt; { stopPlay(); step = 0; render(); };
+  document.getElementById(&quot;shuffleBtn&quot;).onclick = () =&gt; {
+    stopPlay();
+    const set = new Set();
+    while (set.size &lt; N) set.add(1 + Math.floor(Math.random() * 99));
+    values = [...set];
+    build(); step = 0; render();
+  };
+  document.getElementById(&quot;playBtn&quot;).onclick = () =&gt; {
+    if (playing) return stopPlay();
+    if (step === steps().length - 1) step = 0;
+    document.getElementById(&quot;playBtn&quot;).textContent = &quot;⏸ Pause&quot;;
+    render();
+    playing = setInterval(() =&gt; {
+      if (step &lt; steps().length - 1) { step++; render(); } else stopPlay();
+    }, 2200);
+  };
+  // Arrow keys control whichever tab is open
+  document.addEventListener(&quot;keydown&quot;, e =&gt; {
+    const bubbleOpen = document.getElementById(&quot;bubbleTab&quot;).classList.contains(&quot;active&quot;);
+    if (e.key === &quot;ArrowRight&quot;) document.getElementById(bubbleOpen ? &quot;bNext&quot; : &quot;nextBtn&quot;).click();
+    if (e.key === &quot;ArrowLeft&quot;) document.getElementById(bubbleOpen ? &quot;bBack&quot; : &quot;backBtn&quot;).click();
+  });
+
+  // ---------- Tabs ----------
+  document.querySelectorAll(&quot;.tab&quot;).forEach(t =&gt; t.onclick = () =&gt; {
+    document.querySelectorAll(&quot;.tab&quot;).forEach(x =&gt; x.classList.toggle(&quot;active&quot;, x === t));
+    document.querySelectorAll(&quot;.tabpage&quot;).forEach(p =&gt; p.classList.toggle(&quot;active&quot;, p.id === t.dataset.tab));
+    stopPlay(); bStop();
+  });
+
+  // ================= BUBBLE SORT =================
+  let bValues = [38, 27, 43, 3, 9, 82, 10, 5];
+  let bFrames = [], bStep = 0, bTimer = null;
+
+  function bBuild() {
+    const a = bValues.slice(), n = a.length;
+    let comps = 0, swaps = 0;
+    const passTotals = [];
+    bFrames = [{ type: &quot;start&quot;, arr: a.slice(), comps, swaps, pass: 0, sortedFrom: n, passTotals: [], inPass: 0 }];
+    for (let i = 0; i &lt; n - 1; i++) {
+      let inPass = 0;
+      for (let j = 0; j &lt; n - 1 - i; j++) {
+        comps++; inPass++;
+        const willSwap = a[j] &gt; a[j + 1];
+        bFrames.push({ type: &quot;cmp&quot;, arr: a.slice(), j, comps, swaps, pass: i + 1, sortedFrom: n - i,
+                       passTotals: passTotals.slice(), inPass, willSwap });
+        if (willSwap) {
+          [a[j], a[j + 1]] = [a[j + 1], a[j]];
+          swaps++;
+          bFrames.push({ type: &quot;swp&quot;, arr: a.slice(), j, comps, swaps, pass: i + 1, sortedFrom: n - i,
+                         passTotals: passTotals.slice(), inPass });
+        }
+      }
+      passTotals.push(inPass);
+      bFrames.push({ type: &quot;pass&quot;, arr: a.slice(), comps, swaps, pass: i + 1,
+                     sortedFrom: i === n - 2 ? 0 : n - 1 - i, passTotals: passTotals.slice(), inPass });
+    }
+    bFrames.push({ type: &quot;done&quot;, arr: a.slice(), comps, swaps, pass: n - 1, sortedFrom: 0,
+                   passTotals: passTotals.slice(), inPass: 0 });
+  }
+
+  function bRender() {
+    const f = bFrames[bStep], n = f.arr.length, max = Math.max(...f.arr);
+    // Bars
+    document.getElementById(&quot;bArea&quot;).innerHTML = f.arr.map((v, k) =&gt; {
+      let cls = &quot;&quot;;
+      if (k &gt;= f.sortedFrom) cls = &quot;done&quot;;
+      if ((f.type === &quot;cmp&quot;) &amp;&amp; (k === f.j || k === f.j + 1)) cls = &quot;cmp&quot;;
+      if ((f.type === &quot;swp&quot;) &amp;&amp; (k === f.j || k === f.j + 1)) cls = &quot;swp&quot;;
+      return `&lt;div class=&quot;bbar ${cls}&quot; style=&quot;height:${30 + (v / max) * 200}px&quot;&gt;${v}&lt;/div&gt;`;
+    }).join(&quot;&quot;);
+
+    // Code highlight
+    const line = { start: 0, cmp: 3, swp: 4, pass: 1, done: 0 }[f.type];
+    document.querySelectorAll(&quot;#bCode .ln&quot;).forEach(l =&gt;
+      l.classList.toggle(&quot;on&quot;, Number(l.dataset.l) === line || (f.type === &quot;cmp&quot; &amp;&amp; l.dataset.l === &quot;2&quot;)));
+
+    // Explanation
+    const A = f.arr[f.j], B = f.arr[f.j + 1];
+    const info = {
+      start: [&quot;🫧 Ready&quot;, &quot;The unsorted list&quot;,
+        `We have &lt;b&gt;n = ${n}&lt;/b&gt; numbers. Bubble sort compares &lt;b&gt;neighbours&lt;/b&gt; and swaps them if they&#x27;re in the wrong order.
+         After each pass, the biggest unsorted number has &quot;bubbled&quot; to the end.`],
+      cmp: [`Pass ${f.pass}`, `Compare ${A} and ${B}`,
+        f.willSwap ? `${A} &gt; ${B} → &lt;b&gt;wrong order&lt;/b&gt;, so swap them.` : `${A} ≤ ${B} → &lt;b&gt;right order&lt;/b&gt;, leave them.`],
+      swp: [`Pass ${f.pass}`, `Swapped!`,
+        `The bigger number moves one place to the right.`],
+      pass: [`Pass ${f.pass} done`, `${f.arr[n - f.pass]} is in its final place`,
+        `This pass made &lt;b&gt;${f.inPass} comparisons&lt;/b&gt;. Each pass needs one fewer, because the end of the list is already sorted.`],
+      done: [&quot;✅ Sorted&quot;, &quot;Finished!&quot;,
+        `&lt;b&gt;${f.comps} comparisons&lt;/b&gt; and &lt;b&gt;${f.swaps} swaps&lt;/b&gt; for ${n} items.&lt;br&gt;
+         Every pass compares neighbours across the list, and there are about n passes: &lt;b&gt;n × n → O(n²)&lt;/b&gt;.`]
+    }[f.type];
+    document.getElementById(&quot;bTag&quot;).innerHTML = `&lt;span class=&quot;tag ${f.type === &quot;done&quot; ? &quot;merge&quot; : &quot;split&quot;}&quot;&gt;${info[0]}&lt;/span&gt;`;
+    document.getElementById(&quot;bTitle&quot;).textContent = info[1];
+    document.getElementById(&quot;bExplain&quot;).innerHTML = info[2];
+    document.getElementById(&quot;bPass&quot;).textContent = f.pass;
+    document.getElementById(&quot;bComp&quot;).textContent = f.comps;
+    document.getElementById(&quot;bSwaps&quot;).textContent = f.swaps;
+
+    // Running sum of comparisons per pass
+    const parts = f.passTotals.slice();
+    if (f.type === &quot;cmp&quot; || f.type === &quot;swp&quot;) parts.push(f.inPass + &quot;…&quot;);
+    document.getElementById(&quot;bFormula&quot;).innerHTML = f.type === &quot;done&quot;
+      ? `${f.passTotals.join(&quot; + &quot;)} = &lt;span class=&quot;hl&quot;&gt;${f.comps}&lt;/span&gt;&lt;br&gt;&lt;small&gt;= n(n − 1) ÷ 2 → O(n²)&lt;/small&gt;`
+      : `comparisons: ${parts.length ? parts.join(&quot; + &quot;) : &quot;0&quot;}`;
+
+    // Comparison grid: row = pass, filled squares = comparisons made
+    let g = &quot;&quot;;
+    for (let r = 0; r &lt; n - 1; r++) {
+      const made = r &lt; f.passTotals.length ? f.passTotals[r]
+                 : (r === f.passTotals.length &amp;&amp; (f.type === &quot;cmp&quot; || f.type === &quot;swp&quot;)) ? f.inPass : 0;
+      for (let c = 0; c &lt; n; c++) {
+        const slot = c &lt; n - 1 - r;
+        g += `&lt;div class=&quot;gcell ${c &lt; made ? &quot;fill&quot; : slot ? &quot;slot&quot; : &quot;&quot;}&quot;&gt;&lt;/div&gt;`;
+      }
+    }
+    document.getElementById(&quot;cGrid&quot;).innerHTML = g;
+
+    document.getElementById(&quot;bBack&quot;).disabled = bStep === 0;
+    document.getElementById(&quot;bNext&quot;).disabled = bStep === bFrames.length - 1;
+  }
+
+  function bStop() { clearInterval(bTimer); bTimer = null; document.getElementById(&quot;bPlay&quot;).textContent = &quot;⏵ Play&quot;; }
+  function bPlay() {
+    if (bStep === bFrames.length - 1) bStep = 0;
+    document.getElementById(&quot;bPlay&quot;).textContent = &quot;⏸ Pause&quot;;
+    clearInterval(bTimer);
+    bTimer = setInterval(() =&gt; {
+      if (bStep &lt; bFrames.length - 1) { bStep++; bRender(); } else bStop();
+    }, Number(document.getElementById(&quot;bSpeed&quot;).value));
+  }
+  document.getElementById(&quot;bNext&quot;).onclick = () =&gt; { bStop(); if (bStep &lt; bFrames.length - 1) { bStep++; bRender(); } };
+  document.getElementById(&quot;bBack&quot;).onclick = () =&gt; { bStop(); if (bStep &gt; 0) { bStep--; bRender(); } };
+  document.getElementById(&quot;bPlay&quot;).onclick = () =&gt; bTimer ? bStop() : bPlay();
+  document.getElementById(&quot;bReset&quot;).onclick = () =&gt; { bStop(); bStep = 0; bRender(); };
+  document.getElementById(&quot;bSpeed&quot;).oninput = () =&gt; { if (bTimer) bPlay(); };
+  const bNew = arr =&gt; { bStop(); bValues = arr; bBuild(); bStep = 0; bRender(); };
+  document.getElementById(&quot;bRandom&quot;).onclick = () =&gt; {
+    const s = new Set(); while (s.size &lt; 8) s.add(1 + Math.floor(Math.random() * 99));
+    bNew([...s]);
+  };
+  document.getElementById(&quot;bWorst&quot;).onclick = () =&gt; bNew([90, 80, 70, 60, 50, 40, 30, 20]);
+  bBuild(); bRender();
+
+  // ---------- Compare slider ----------
+  const fmt = x =&gt; x &gt;= 1e12 ? (x / 1e12).toFixed(1) + &quot; trillion&quot;
+                 : x &gt;= 1e9 ? (x / 1e9).toFixed(1) + &quot; billion&quot;
+                 : x &gt;= 1e6 ? (x / 1e6).toFixed(1) + &quot; million&quot;
+                 : Math.round(x).toLocaleString();
+  function updateCompare() {
+    const p = Number(document.getElementById(&quot;nSlider&quot;).value);
+    const n = 2 ** p;
+    const good = n * p, bad = n * n;
+    document.getElementById(&quot;nLabel&quot;).textContent = n.toLocaleString();
+    // log scale so both bars stay visible
+    const scale = x =&gt; Math.log10(x + 1) / Math.log10(bad + 1) * 100;
+    document.getElementById(&quot;goodBar&quot;).style.width = scale(good) + &quot;%&quot;;
+    document.getElementById(&quot;badBar&quot;).style.width = &quot;100%&quot;;
+    document.getElementById(&quot;goodNum&quot;).textContent = fmt(good);
+    document.getElementById(&quot;badNum&quot;).textContent = fmt(bad);
+    const ratio = bad / good;
+    document.getElementById(&quot;verdict&quot;).innerHTML =
+      `${n.toLocaleString()} items: ${n.toLocaleString()} × ${p} = ${fmt(good)} steps vs ${n.toLocaleString()}² = ${fmt(bad)} steps.&lt;br&gt;
+       Bubble sort does &lt;b&gt;${fmt(ratio)}× more work&lt;/b&gt;.`;
+  }
+  document.getElementById(&quot;nSlider&quot;).oninput = updateCompare;
+
+  build(); render(); updateCompare();
+&lt;/script&gt;
+&lt;script&gt;document.querySelector(&#x27;.tab[data-tab=&quot;mergeTab&quot;]&#x27;).click();&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+    <iframe id="bubble" title="Bubble sort" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Merge Sort – Where does n log n come from?&lt;/title&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root{
+    --bg:#f8fafc; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --panel:#ffffff;
+    --split:#2563eb; --split-bg:#dbeafe; --merge:#16a34a; --merge-bg:#dcfce7;
+    --bad:#dc2626; --bad-bg:#fee2e2; --accent:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:&quot;Fredoka&quot;,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:20px 24px 4px;text-align:center}
+  header h1{margin:0;font-size:clamp(1.6rem,3.5vw,2.4rem)}
+  header p{margin:6px 0 0;color:var(--muted);font-size:1.1rem}
+  .mono{font-family:&quot;JetBrains Mono&quot;,monospace}
+  main{max-width:1200px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:18px}
+
+  /* ---------- Visual ---------- */
+  .row{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:10px;padding:6px 0;transition:opacity .4s}
+  .row.hidden{opacity:0;pointer-events:none}
+  .row.current .label{color:var(--ink);font-weight:700}
+  .label{font-size:.9rem;color:var(--muted);line-height:1.2}
+  .label b{display:block;font-size:1rem}
+  .groups{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+  .group{display:flex;gap:4px;padding:5px;border-radius:12px;border:2px solid}
+  .split .group{border-color:var(--split);background:var(--split-bg)}
+  .merge .group{border-color:var(--merge);background:var(--merge-bg)}
+  .cell{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+        font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;color:#fff;font-size:1.05rem;
+        box-shadow:0 2px 0 rgba(0,0,0,.15)}
+  .row.current .cell{animation:pop .45s ease}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.95rem;margin:6px 0}
+  .divider::before,.divider::after{content:&quot;&quot;;flex:1;height:2px;background:var(--line)}
+  .divider.hidden{opacity:0}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  button{font:inherit;font-weight:600;font-size:1rem;border:2px solid var(--ink);border-radius:12px;padding:9px 16px;cursor:pointer;background:#fff}
+  button.primary{background:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .progress{display:flex;gap:6px;justify-content:center;margin-top:12px}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+  .dot.on{background:var(--ink)}
+
+  /* ---------- Explanation ---------- */
+  .step-title{font-size:1.35rem;margin:0 0 8px}
+  .explain{font-size:1.08rem;line-height:1.55;min-height:150px}
+  .tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:600;margin-bottom:8px}
+  .tag.split{background:var(--split-bg);color:var(--split)}
+  .tag.merge{background:var(--merge-bg);color:var(--merge)}
+  .tag.sum{background:#fef3c7;color:#92400e}
+
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .meter{border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+  .meter .big{font-size:2rem;font-weight:700;font-family:&quot;JetBrains Mono&quot;,monospace}
+  .meter small{color:var(--muted)}
+  .formula{margin-top:12px;font-family:&quot;JetBrains Mono&quot;,monospace;font-size:1.05rem;background:#0f172a;color:#e2e8f0;
+           border-radius:12px;padding:12px;text-align:center}
+  .formula .hl{color:#fbbf24;font-weight:700}
+
+  /* ---------- Compare ---------- */
+  .compare{grid-column:1 / -1}
+  .bars{margin-top:10px;display:grid;gap:10px}
+  .bar-row{display:grid;grid-template-columns:170px 1fr 140px;align-items:center;gap:10px}
+  @media(max-width:600px){.bar-row{grid-template-columns:110px 1fr 90px}}
+  .track{height:30px;background:var(--line);border-radius:10px;overflow:hidden}
+  .fill{height:100%;border-radius:10px;transition:width .5s}
+  .fill.good{background:var(--merge)} .fill.bad{background:var(--bad)}
+  .num{font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;text-align:right}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .verdict{margin-top:12px;font-size:1.15rem;text-align:center}
+  .verdict b{color:var(--bad)}
+  .note{color:var(--muted);font-size:.9rem;margin-top:8px}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;justify-content:center;gap:10px;padding:16px 16px 0;flex-wrap:wrap}
+  .tab{border-radius:999px}
+  .tab.active{background:var(--ink);color:#fff}
+  .tabpage{display:none}
+  .tabpage.active{display:block}
+
+  /* ---------- Bubble sort ---------- */
+  .bars-area{height:260px;display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:10px;border-bottom:3px solid var(--line)}
+  .bbar{width:52px;border-radius:10px 10px 4px 4px;background:#94a3b8;display:flex;align-items:flex-start;justify-content:center;
+        color:#fff;font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;padding-top:6px;transition:height .3s,background .2s}
+  .bbar.cmp{background:#f59e0b} .bbar.swp{background:#dc2626} .bbar.done{background:#16a34a}
+  .legend{display:flex;gap:16px;justify-content:center;margin-top:8px;color:var(--muted);font-size:.9rem}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .codebox{margin-top:14px;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:12px;font-family:&quot;JetBrains Mono&quot;,monospace;
+           font-size:.92rem;line-height:1.7;overflow-x:auto}
+  .codebox .ln{display:block;border-radius:6px;padding:0 6px;white-space:pre}
+  .codebox .ln.on{background:#334155}
+  .k{color:#f472b6} .c{color:#64748b}
+  .gridwrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+  @media(max-width:700px){.gridwrap{grid-template-columns:1fr}}
+  .cgrid{display:grid;grid-template-columns:repeat(8,34px);gap:4px}
+  .gcell{width:34px;height:34px;border-radius:6px;background:var(--line);transition:background .3s}
+  .gcell.slot{background:#fde68a}
+  .gcell.fill{background:#dc2626}
+  .gridtext p{margin:6px 0;font-size:1.05rem}
+&lt;/style&gt;
+
+&lt;style&gt;
+  nav.tabs{display:none !important}
+  header h1{color:#4c1130}
+  button.primary{background:#4c1130;color:#fff;border-color:#4c1130}
+  input[type=range]{accent-color:#4c1130}
+  .formula .hl{color:#fbbf24}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;nav class=&quot;tabs&quot;&gt;
+  &lt;button class=&quot;tab active&quot; data-tab=&quot;mergeTab&quot;&gt;🔀 Merge sort · O(n log n)&lt;/button&gt;
+  &lt;button class=&quot;tab&quot; data-tab=&quot;bubbleTab&quot;&gt;🫧 Bubble sort · O(n²)&lt;/button&gt;
+&lt;/nav&gt;
+
+&lt;section id=&quot;mergeTab&quot; class=&quot;tabpage active&quot;&gt;
+&lt;header&gt;
+  &lt;h1&gt;🔀 Merge Sort: where does &lt;span class=&quot;mono&quot;&gt;n log n&lt;/span&gt; come from?&lt;/h1&gt;
+  &lt;p&gt;Sorting 8 items, step by step.&lt;/p&gt;
+&lt;/header&gt;
+
+&lt;main&gt;
+  &lt;!-- ================= Visual ================= --&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div id=&quot;visual&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;controls&quot;&gt;
+      &lt;button id=&quot;backBtn&quot;&gt;◀ Back&lt;/button&gt;
+      &lt;button id=&quot;nextBtn&quot; class=&quot;primary&quot;&gt;Next ▶&lt;/button&gt;
+      &lt;button id=&quot;playBtn&quot;&gt;⏵ Play all&lt;/button&gt;
+      &lt;button id=&quot;resetBtn&quot;&gt;↺ Reset&lt;/button&gt;
+      &lt;button id=&quot;shuffleBtn&quot;&gt;🎲 New numbers&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;progress&quot; id=&quot;progress&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- ================= Explanation ================= --&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div id=&quot;tag&quot;&gt;&lt;/div&gt;
+    &lt;h2 class=&quot;step-title&quot; id=&quot;stepTitle&quot;&gt;&lt;/h2&gt;
+    &lt;div class=&quot;explain&quot; id=&quot;explain&quot;&gt;&lt;/div&gt;
+
+    &lt;div class=&quot;meters&quot;&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;levelsMeter&quot;&gt;0&lt;/div&gt;&lt;small&gt;split levels&lt;br&gt;(this is &lt;b&gt;log n&lt;/b&gt;)&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;workMeter&quot;&gt;0&lt;/div&gt;&lt;small&gt;work done&lt;br&gt;(items handled)&lt;/small&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;formula&quot; id=&quot;formula&quot;&gt;n × log n = 8 × ? = ?&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- ================= Compare ================= --&gt;
+  &lt;div class=&quot;panel compare&quot;&gt;
+    &lt;h2 class=&quot;step-title&quot;&gt;📈 Why it matters: merge sort vs bubble sort&lt;/h2&gt;
+    &lt;p class=&quot;note&quot; style=&quot;margin-top:0&quot;&gt;Drag the slider to make the list bigger and compare the amount of work.&lt;/p&gt;
+    &lt;label for=&quot;nSlider&quot;&gt;&lt;b&gt;Number of items: &lt;span class=&quot;mono&quot; id=&quot;nLabel&quot;&gt;8&lt;/span&gt;&lt;/b&gt;&lt;/label&gt;
+    &lt;input type=&quot;range&quot; id=&quot;nSlider&quot; min=&quot;3&quot; max=&quot;20&quot; value=&quot;3&quot;&gt;
+    &lt;div class=&quot;bars&quot;&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;Merge sort&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;O(n log n)&lt;/span&gt;&lt;/span&gt;
+        &lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill good&quot; id=&quot;goodBar&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot; id=&quot;goodNum&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;Bubble sort&lt;br&gt;&lt;span class=&quot;mono&quot;&gt;O(n²)&lt;/span&gt;&lt;/span&gt;
+        &lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; id=&quot;badBar&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot; id=&quot;badNum&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;verdict&quot; id=&quot;verdict&quot;&gt;&lt;/div&gt;
+    &lt;p class=&quot;note&quot;&gt;Bars use a logarithmic scale for large lists, otherwise the merge sort bar would be too small to see!&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/main&gt;
+&lt;/section&gt;
+
+&lt;!-- ======================= BUBBLE SORT TAB ======================= --&gt;
+&lt;section id=&quot;bubbleTab&quot; class=&quot;tabpage&quot;&gt;
+&lt;header&gt;
+  &lt;h1&gt;🫧 Bubble Sort: why is it &lt;span class=&quot;mono&quot;&gt;O(n²)&lt;/span&gt;?&lt;/h1&gt;
+  &lt;p&gt;Compare neighbours, swap if they&#x27;re in the wrong order, repeat.&lt;/p&gt;
+&lt;/header&gt;
+&lt;main&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;bars-area&quot; id=&quot;bArea&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;legend&quot;&gt;
+      &lt;span&gt;&lt;i style=&quot;background:#f59e0b&quot;&gt;&lt;/i&gt;comparing&lt;/span&gt;
+      &lt;span&gt;&lt;i style=&quot;background:#dc2626&quot;&gt;&lt;/i&gt;swapping&lt;/span&gt;
+      &lt;span&gt;&lt;i style=&quot;background:#16a34a&quot;&gt;&lt;/i&gt;in final place&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;controls&quot;&gt;
+      &lt;button id=&quot;bBack&quot;&gt;◀ Back&lt;/button&gt;
+      &lt;button id=&quot;bNext&quot; class=&quot;primary&quot;&gt;Next ▶&lt;/button&gt;
+      &lt;button id=&quot;bPlay&quot;&gt;⏵ Play&lt;/button&gt;
+      &lt;button id=&quot;bReset&quot;&gt;↺ Reset&lt;/button&gt;
+      &lt;button id=&quot;bRandom&quot;&gt;🎲 Random&lt;/button&gt;
+      &lt;button id=&quot;bWorst&quot;&gt;⬇ Worst case&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;label class=&quot;note&quot; style=&quot;display:block;text-align:center;margin-top:10px&quot;&gt;Speed
+      &lt;input type=&quot;range&quot; id=&quot;bSpeed&quot; min=&quot;100&quot; max=&quot;1500&quot; value=&quot;700&quot; style=&quot;width:160px;vertical-align:middle;direction:rtl&quot;&gt;
+    &lt;/label&gt;
+
+    &lt;div class=&quot;codebox&quot; id=&quot;bCode&quot;&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;1&quot;&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; i &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; range(n - 1):            &lt;span class=&quot;c&quot;&gt;# outer loop: one pass each time&lt;/span&gt;&lt;/span&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;2&quot;&gt;    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; j &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; range(n - 1 - i):    &lt;span class=&quot;c&quot;&gt;# inner loop: compare neighbours&lt;/span&gt;&lt;/span&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;3&quot;&gt;        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; items[j] &gt; items[j + 1]:&lt;/span&gt;
+      &lt;span class=&quot;ln&quot; data-l=&quot;4&quot;&gt;            items[j], items[j + 1] = items[j + 1], items[j]   &lt;span class=&quot;c&quot;&gt;# swap&lt;/span&gt;&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div id=&quot;bTag&quot;&gt;&lt;/div&gt;
+    &lt;h2 class=&quot;step-title&quot; id=&quot;bTitle&quot;&gt;&lt;/h2&gt;
+    &lt;div class=&quot;explain&quot; id=&quot;bExplain&quot; style=&quot;min-height:110px&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;meters&quot; style=&quot;grid-template-columns:1fr 1fr 1fr&quot;&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;bPass&quot;&gt;0&lt;/div&gt;&lt;small&gt;pass&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;bComp&quot;&gt;0&lt;/div&gt;&lt;small&gt;comparisons&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;meter&quot;&gt;&lt;div class=&quot;big&quot; id=&quot;bSwaps&quot;&gt;0&lt;/div&gt;&lt;small&gt;swaps&lt;/small&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;formula&quot; id=&quot;bFormula&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel compare&quot;&gt;
+    &lt;h2 class=&quot;step-title&quot;&gt;🟧 The comparison grid: why it&#x27;s &quot;about n²&quot;&lt;/h2&gt;
+    &lt;p class=&quot;note&quot; style=&quot;margin-top:0&quot;&gt;Each square is one comparison. Row 1 is pass 1, row 2 is pass 2, and so on. Watch the squares fill as the sort runs.&lt;/p&gt;
+    &lt;div class=&quot;gridwrap&quot;&gt;
+      &lt;div class=&quot;cgrid&quot; id=&quot;cGrid&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;gridtext&quot;&gt;
+        &lt;p&gt;Pass 1 makes &lt;b&gt;7&lt;/b&gt; comparisons, pass 2 makes &lt;b&gt;6&lt;/b&gt;, then 5, 4, 3, 2, 1.&lt;/p&gt;
+        &lt;p class=&quot;mono&quot; style=&quot;font-size:1.1rem&quot;&gt;7+6+5+4+3+2+1 = &lt;b&gt;28&lt;/b&gt;&lt;/p&gt;
+        &lt;p&gt;The filled squares make a &lt;b&gt;triangle&lt;/b&gt;: about &lt;b&gt;half&lt;/b&gt; of an n × n square.&lt;/p&gt;
+        &lt;p class=&quot;mono&quot; style=&quot;font-size:1.1rem&quot;&gt;n(n − 1) ÷ 2 = (n² − n) ÷ 2&lt;/p&gt;
+        &lt;p&gt;Big O rules:&lt;br&gt;1️⃣ keep the fastest-growing term → &lt;span class=&quot;mono&quot;&gt;n²&lt;/span&gt;&lt;br&gt;2️⃣ drop the constant ÷ 2 →
+          &lt;b class=&quot;mono&quot; style=&quot;font-size:1.3rem&quot;&gt;O(n²)&lt;/b&gt;&lt;/p&gt;
+        &lt;p class=&quot;note&quot;&gt;💡 The &lt;b&gt;nested loops&lt;/b&gt; are the clue: a loop inside a loop, and both depend on n.&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;bars&quot; style=&quot;margin-top:18px&quot;&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;8 items&lt;/span&gt;&lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; style=&quot;width:0.28%&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot;&gt;28&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;100 items&lt;/span&gt;&lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; style=&quot;width:4.95%&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot;&gt;4,950&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;bar-row&quot;&gt;&lt;span&gt;1,000 items&lt;/span&gt;&lt;div class=&quot;track&quot;&gt;&lt;div class=&quot;fill bad&quot; style=&quot;width:100%&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;num&quot;&gt;499,500&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;p class=&quot;note&quot;&gt;10× more items → about &lt;b&gt;100× more comparisons&lt;/b&gt;. That&#x27;s what n² growth feels like.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/main&gt;
+&lt;/section&gt;
+
+&lt;script&gt;
+  const N = 8;
+  let values = [38, 27, 43, 3, 9, 82, 10, 5];
+  let splitRows = [], mergeRows = [];
+  let step = 0, playing = null;
+
+  // ---------- Build the split and merge levels ----------
+  function build() {
+    splitRows = [[values.slice()]];
+    while (splitRows[splitRows.length - 1].some(g =&gt; g.length &gt; 1)) {
+      const prev = splitRows[splitRows.length - 1];
+      splitRows.push(prev.flatMap(g =&gt; {
+        if (g.length === 1) return [g];
+        const mid = Math.ceil(g.length / 2);
+        return [g.slice(0, mid), g.slice(mid)];
+      }));
+    }
+    mergeRows = [];
+    let current = splitRows[splitRows.length - 1];
+    while (current.length &gt; 1) {
+      const next = [];
+      for (let i = 0; i &lt; current.length; i += 2) {
+        next.push(i + 1 &lt; current.length ? merge(current[i], current[i + 1]) : current[i]);
+      }
+      mergeRows.push(next);
+      current = next;
+    }
+  }
+  function merge(a, b) {
+    const out = []; let i = 0, j = 0;
+    while (i &lt; a.length &amp;&amp; j &lt; b.length) out.push(a[i] &lt;= b[j] ? a[i++] : b[j++]);
+    return out.concat(a.slice(i), b.slice(j));
+  }
+
+  // Colour each number by its size: small = cool, big = warm
+  function colour(v) {
+    const min = Math.min(...values), max = Math.max(...values);
+    const t = max === min ? 0.5 : (v - min) / (max - min);
+    return `hsl(${220 - t * 200}, 70%, 50%)`;
+  }
+
+  // ---------- Steps (one per frame) ----------
+  const LOG = Math.log2(N); // 3
+  function steps() {
+    return [
+      { kind: &quot;split&quot;, show: 0, title: &quot;The unsorted list&quot;,
+        text: `We have &lt;b&gt;n = 8&lt;/b&gt; numbers to sort. Merge sort works in two parts:&lt;br&gt;
+               &lt;b style=&quot;color:var(--split)&quot;&gt;1. Split&lt;/b&gt; the list in half again and again.&lt;br&gt;
+               &lt;b style=&quot;color:var(--merge)&quot;&gt;2. Merge&lt;/b&gt; the pieces back together in order.` },
+      { kind: &quot;split&quot;, show: 1, title: &quot;Split level 1&quot;,
+        text: `Cut the list in half: &lt;b&gt;8 → 4 + 4&lt;/b&gt;.&lt;br&gt;Each half is now a smaller sorting problem.` },
+      { kind: &quot;split&quot;, show: 2, title: &quot;Split level 2&quot;,
+        text: `Cut each half in half again: &lt;b&gt;4 → 2 + 2&lt;/b&gt;.` },
+      { kind: &quot;split&quot;, show: 3, title: &quot;Split level 3: single items&quot;,
+        text: `Now every piece holds &lt;b&gt;1 item&lt;/b&gt; – and a list of 1 item is already sorted!&lt;br&gt;&lt;br&gt;
+               We halved &lt;b&gt;3 times&lt;/b&gt;: 8 → 4 → 2 → 1.&lt;br&gt;That&#x27;s &lt;b&gt;log₂ 8 = 3&lt;/b&gt;, because 2³ = 8.
+               &lt;br&gt;👉 &lt;b&gt;This is where log n comes from.&lt;/b&gt;` },
+      { kind: &quot;merge&quot;, show: 4, title: &quot;Merge level 1: pairs&quot;,
+        text: `Merge the single items into &lt;b&gt;sorted pairs&lt;/b&gt;, always taking the smaller front item first.&lt;br&gt;&lt;br&gt;
+               All &lt;b&gt;8 items&lt;/b&gt; are handled at this level.` },
+      { kind: &quot;merge&quot;, show: 5, title: &quot;Merge level 2: fours&quot;,
+        text: `Merge the pairs into &lt;b&gt;sorted groups of 4&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               Again, all &lt;b&gt;8 items&lt;/b&gt; are handled.` },
+      { kind: &quot;merge&quot;, show: 6, title: &quot;Merge level 3: sorted! ✅&quot;,
+        text: `Merge the two groups of 4 into &lt;b&gt;one sorted list&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               All &lt;b&gt;8 items&lt;/b&gt; handled again.&lt;br&gt;👉 &lt;b&gt;Every level touches all n items. This is where the n comes from.&lt;/b&gt;` },
+      { kind: &quot;sum&quot;, show: 6, title: &quot;Putting it together&quot;,
+        text: `&lt;b&gt;3 levels&lt;/b&gt; (log n) × &lt;b&gt;8 items per level&lt;/b&gt; (n) = &lt;b&gt;24 steps&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               Bubble sort compares items over and over: about &lt;b&gt;8 × 8 = 64 steps&lt;/b&gt;.&lt;br&gt;&lt;br&gt;
+               Small difference with 8 items… now try the slider below with a &lt;b&gt;million&lt;/b&gt;!` }
+    ];
+  }
+
+  // ---------- Render ----------
+  function rowHTML(groups, kind, label, sub, visible, current) {
+    const gs = groups.map(g =&gt; `&lt;div class=&quot;group&quot;&gt;${
+      g.map(v =&gt; `&lt;div class=&quot;cell&quot; style=&quot;background:${colour(v)}&quot;&gt;${v}&lt;/div&gt;`).join(&quot;&quot;)}&lt;/div&gt;`).join(&quot;&quot;);
+    return `&lt;div class=&quot;row ${kind} ${visible ? &quot;&quot; : &quot;hidden&quot;} ${current ? &quot;current&quot; : &quot;&quot;}&quot;&gt;
+      &lt;div class=&quot;label&quot;&gt;&lt;b&gt;${label}&lt;/b&gt;${sub}&lt;/div&gt;&lt;div class=&quot;groups&quot;&gt;${gs}&lt;/div&gt;&lt;/div&gt;`;
+  }
+
+  function render() {
+    const s = steps()[step];
+    const v = document.getElementById(&quot;visual&quot;);
+    let html = &quot;&quot;;
+    splitRows.forEach((r, i) =&gt; {
+      html += rowHTML(r, &quot;split&quot;, i === 0 ? &quot;Start&quot; : `Split ${i}`,
+        i === 0 ? &quot;1 list&quot; : `${r.length} pieces`, s.show &gt;= i, s.show === i &amp;&amp; s.kind === &quot;split&quot;);
+    });
+    html += `&lt;div class=&quot;divider ${s.show &gt;= 4 ? &quot;&quot; : &quot;hidden&quot;}&quot;&gt;now merge back up ⬇&lt;/div&gt;`;
+    mergeRows.forEach((r, i) =&gt; {
+      const idx = splitRows.length + i;
+      html += rowHTML(r, &quot;merge&quot;, `Merge ${i + 1}`, `8 items handled`,
+        s.show &gt;= idx, s.show === idx &amp;&amp; s.kind === &quot;merge&quot;);
+    });
+    v.innerHTML = html;
+
+    // Explanation panel
+    const tagText = { split: &quot;✂️ Splitting&quot;, merge: &quot;🔗 Merging&quot;, sum: &quot;🧮 Summary&quot; }[s.kind];
+    document.getElementById(&quot;tag&quot;).innerHTML = `&lt;span class=&quot;tag ${s.kind}&quot;&gt;${tagText}&lt;/span&gt;`;
+    document.getElementById(&quot;stepTitle&quot;).textContent = s.title;
+    document.getElementById(&quot;explain&quot;).innerHTML = s.text;
+
+    const levels = Math.min(s.show, LOG);
+    const mergesDone = Math.max(0, s.show - LOG);
+    const work = mergesDone * N;
+    document.getElementById(&quot;levelsMeter&quot;).textContent = levels;
+    document.getElementById(&quot;workMeter&quot;).textContent = work;
+
+    const parts = Array.from({ length: mergesDone }, () =&gt; N).join(&quot; + &quot;) || &quot;0&quot;;
+    document.getElementById(&quot;formula&quot;).innerHTML = mergesDone === LOG
+      ? `n × log n = 8 × 3 = &lt;span class=&quot;hl&quot;&gt;24&lt;/span&gt;&lt;br&gt;&lt;small&gt;(${parts})&lt;/small&gt;`
+      : `work so far: ${parts}${mergesDone ? &quot; = &quot; + work : &quot;&quot;}`;
+
+    document.getElementById(&quot;progress&quot;).innerHTML =
+      steps().map((_, i) =&gt; `&lt;div class=&quot;dot ${i &lt;= step ? &quot;on&quot; : &quot;&quot;}&quot;&gt;&lt;/div&gt;`).join(&quot;&quot;);
+    document.getElementById(&quot;backBtn&quot;).disabled = step === 0;
+    document.getElementById(&quot;nextBtn&quot;).disabled = step === steps().length - 1;
+  }
+
+  // ---------- Controls ----------
+  function stopPlay() { clearInterval(playing); playing = null; document.getElementById(&quot;playBtn&quot;).textContent = &quot;⏵ Play all&quot;; }
+  document.getElementById(&quot;nextBtn&quot;).onclick = () =&gt; { stopPlay(); if (step &lt; steps().length - 1) { step++; render(); } };
+  document.getElementById(&quot;backBtn&quot;).onclick = () =&gt; { stopPlay(); if (step &gt; 0) { step--; render(); } };
+  document.getElementById(&quot;resetBtn&quot;).onclick = () =&gt; { stopPlay(); step = 0; render(); };
+  document.getElementById(&quot;shuffleBtn&quot;).onclick = () =&gt; {
+    stopPlay();
+    const set = new Set();
+    while (set.size &lt; N) set.add(1 + Math.floor(Math.random() * 99));
+    values = [...set];
+    build(); step = 0; render();
+  };
+  document.getElementById(&quot;playBtn&quot;).onclick = () =&gt; {
+    if (playing) return stopPlay();
+    if (step === steps().length - 1) step = 0;
+    document.getElementById(&quot;playBtn&quot;).textContent = &quot;⏸ Pause&quot;;
+    render();
+    playing = setInterval(() =&gt; {
+      if (step &lt; steps().length - 1) { step++; render(); } else stopPlay();
+    }, 2200);
+  };
+  // Arrow keys control whichever tab is open
+  document.addEventListener(&quot;keydown&quot;, e =&gt; {
+    const bubbleOpen = document.getElementById(&quot;bubbleTab&quot;).classList.contains(&quot;active&quot;);
+    if (e.key === &quot;ArrowRight&quot;) document.getElementById(bubbleOpen ? &quot;bNext&quot; : &quot;nextBtn&quot;).click();
+    if (e.key === &quot;ArrowLeft&quot;) document.getElementById(bubbleOpen ? &quot;bBack&quot; : &quot;backBtn&quot;).click();
+  });
+
+  // ---------- Tabs ----------
+  document.querySelectorAll(&quot;.tab&quot;).forEach(t =&gt; t.onclick = () =&gt; {
+    document.querySelectorAll(&quot;.tab&quot;).forEach(x =&gt; x.classList.toggle(&quot;active&quot;, x === t));
+    document.querySelectorAll(&quot;.tabpage&quot;).forEach(p =&gt; p.classList.toggle(&quot;active&quot;, p.id === t.dataset.tab));
+    stopPlay(); bStop();
+  });
+
+  // ================= BUBBLE SORT =================
+  let bValues = [38, 27, 43, 3, 9, 82, 10, 5];
+  let bFrames = [], bStep = 0, bTimer = null;
+
+  function bBuild() {
+    const a = bValues.slice(), n = a.length;
+    let comps = 0, swaps = 0;
+    const passTotals = [];
+    bFrames = [{ type: &quot;start&quot;, arr: a.slice(), comps, swaps, pass: 0, sortedFrom: n, passTotals: [], inPass: 0 }];
+    for (let i = 0; i &lt; n - 1; i++) {
+      let inPass = 0;
+      for (let j = 0; j &lt; n - 1 - i; j++) {
+        comps++; inPass++;
+        const willSwap = a[j] &gt; a[j + 1];
+        bFrames.push({ type: &quot;cmp&quot;, arr: a.slice(), j, comps, swaps, pass: i + 1, sortedFrom: n - i,
+                       passTotals: passTotals.slice(), inPass, willSwap });
+        if (willSwap) {
+          [a[j], a[j + 1]] = [a[j + 1], a[j]];
+          swaps++;
+          bFrames.push({ type: &quot;swp&quot;, arr: a.slice(), j, comps, swaps, pass: i + 1, sortedFrom: n - i,
+                         passTotals: passTotals.slice(), inPass });
+        }
+      }
+      passTotals.push(inPass);
+      bFrames.push({ type: &quot;pass&quot;, arr: a.slice(), comps, swaps, pass: i + 1,
+                     sortedFrom: i === n - 2 ? 0 : n - 1 - i, passTotals: passTotals.slice(), inPass });
+    }
+    bFrames.push({ type: &quot;done&quot;, arr: a.slice(), comps, swaps, pass: n - 1, sortedFrom: 0,
+                   passTotals: passTotals.slice(), inPass: 0 });
+  }
+
+  function bRender() {
+    const f = bFrames[bStep], n = f.arr.length, max = Math.max(...f.arr);
+    // Bars
+    document.getElementById(&quot;bArea&quot;).innerHTML = f.arr.map((v, k) =&gt; {
+      let cls = &quot;&quot;;
+      if (k &gt;= f.sortedFrom) cls = &quot;done&quot;;
+      if ((f.type === &quot;cmp&quot;) &amp;&amp; (k === f.j || k === f.j + 1)) cls = &quot;cmp&quot;;
+      if ((f.type === &quot;swp&quot;) &amp;&amp; (k === f.j || k === f.j + 1)) cls = &quot;swp&quot;;
+      return `&lt;div class=&quot;bbar ${cls}&quot; style=&quot;height:${30 + (v / max) * 200}px&quot;&gt;${v}&lt;/div&gt;`;
+    }).join(&quot;&quot;);
+
+    // Code highlight
+    const line = { start: 0, cmp: 3, swp: 4, pass: 1, done: 0 }[f.type];
+    document.querySelectorAll(&quot;#bCode .ln&quot;).forEach(l =&gt;
+      l.classList.toggle(&quot;on&quot;, Number(l.dataset.l) === line || (f.type === &quot;cmp&quot; &amp;&amp; l.dataset.l === &quot;2&quot;)));
+
+    // Explanation
+    const A = f.arr[f.j], B = f.arr[f.j + 1];
+    const info = {
+      start: [&quot;🫧 Ready&quot;, &quot;The unsorted list&quot;,
+        `We have &lt;b&gt;n = ${n}&lt;/b&gt; numbers. Bubble sort compares &lt;b&gt;neighbours&lt;/b&gt; and swaps them if they&#x27;re in the wrong order.
+         After each pass, the biggest unsorted number has &quot;bubbled&quot; to the end.`],
+      cmp: [`Pass ${f.pass}`, `Compare ${A} and ${B}`,
+        f.willSwap ? `${A} &gt; ${B} → &lt;b&gt;wrong order&lt;/b&gt;, so swap them.` : `${A} ≤ ${B} → &lt;b&gt;right order&lt;/b&gt;, leave them.`],
+      swp: [`Pass ${f.pass}`, `Swapped!`,
+        `The bigger number moves one place to the right.`],
+      pass: [`Pass ${f.pass} done`, `${f.arr[n - f.pass]} is in its final place`,
+        `This pass made &lt;b&gt;${f.inPass} comparisons&lt;/b&gt;. Each pass needs one fewer, because the end of the list is already sorted.`],
+      done: [&quot;✅ Sorted&quot;, &quot;Finished!&quot;,
+        `&lt;b&gt;${f.comps} comparisons&lt;/b&gt; and &lt;b&gt;${f.swaps} swaps&lt;/b&gt; for ${n} items.&lt;br&gt;
+         Every pass compares neighbours across the list, and there are about n passes: &lt;b&gt;n × n → O(n²)&lt;/b&gt;.`]
+    }[f.type];
+    document.getElementById(&quot;bTag&quot;).innerHTML = `&lt;span class=&quot;tag ${f.type === &quot;done&quot; ? &quot;merge&quot; : &quot;split&quot;}&quot;&gt;${info[0]}&lt;/span&gt;`;
+    document.getElementById(&quot;bTitle&quot;).textContent = info[1];
+    document.getElementById(&quot;bExplain&quot;).innerHTML = info[2];
+    document.getElementById(&quot;bPass&quot;).textContent = f.pass;
+    document.getElementById(&quot;bComp&quot;).textContent = f.comps;
+    document.getElementById(&quot;bSwaps&quot;).textContent = f.swaps;
+
+    // Running sum of comparisons per pass
+    const parts = f.passTotals.slice();
+    if (f.type === &quot;cmp&quot; || f.type === &quot;swp&quot;) parts.push(f.inPass + &quot;…&quot;);
+    document.getElementById(&quot;bFormula&quot;).innerHTML = f.type === &quot;done&quot;
+      ? `${f.passTotals.join(&quot; + &quot;)} = &lt;span class=&quot;hl&quot;&gt;${f.comps}&lt;/span&gt;&lt;br&gt;&lt;small&gt;= n(n − 1) ÷ 2 → O(n²)&lt;/small&gt;`
+      : `comparisons: ${parts.length ? parts.join(&quot; + &quot;) : &quot;0&quot;}`;
+
+    // Comparison grid: row = pass, filled squares = comparisons made
+    let g = &quot;&quot;;
+    for (let r = 0; r &lt; n - 1; r++) {
+      const made = r &lt; f.passTotals.length ? f.passTotals[r]
+                 : (r === f.passTotals.length &amp;&amp; (f.type === &quot;cmp&quot; || f.type === &quot;swp&quot;)) ? f.inPass : 0;
+      for (let c = 0; c &lt; n; c++) {
+        const slot = c &lt; n - 1 - r;
+        g += `&lt;div class=&quot;gcell ${c &lt; made ? &quot;fill&quot; : slot ? &quot;slot&quot; : &quot;&quot;}&quot;&gt;&lt;/div&gt;`;
+      }
+    }
+    document.getElementById(&quot;cGrid&quot;).innerHTML = g;
+
+    document.getElementById(&quot;bBack&quot;).disabled = bStep === 0;
+    document.getElementById(&quot;bNext&quot;).disabled = bStep === bFrames.length - 1;
+  }
+
+  function bStop() { clearInterval(bTimer); bTimer = null; document.getElementById(&quot;bPlay&quot;).textContent = &quot;⏵ Play&quot;; }
+  function bPlay() {
+    if (bStep === bFrames.length - 1) bStep = 0;
+    document.getElementById(&quot;bPlay&quot;).textContent = &quot;⏸ Pause&quot;;
+    clearInterval(bTimer);
+    bTimer = setInterval(() =&gt; {
+      if (bStep &lt; bFrames.length - 1) { bStep++; bRender(); } else bStop();
+    }, Number(document.getElementById(&quot;bSpeed&quot;).value));
+  }
+  document.getElementById(&quot;bNext&quot;).onclick = () =&gt; { bStop(); if (bStep &lt; bFrames.length - 1) { bStep++; bRender(); } };
+  document.getElementById(&quot;bBack&quot;).onclick = () =&gt; { bStop(); if (bStep &gt; 0) { bStep--; bRender(); } };
+  document.getElementById(&quot;bPlay&quot;).onclick = () =&gt; bTimer ? bStop() : bPlay();
+  document.getElementById(&quot;bReset&quot;).onclick = () =&gt; { bStop(); bStep = 0; bRender(); };
+  document.getElementById(&quot;bSpeed&quot;).oninput = () =&gt; { if (bTimer) bPlay(); };
+  const bNew = arr =&gt; { bStop(); bValues = arr; bBuild(); bStep = 0; bRender(); };
+  document.getElementById(&quot;bRandom&quot;).onclick = () =&gt; {
+    const s = new Set(); while (s.size &lt; 8) s.add(1 + Math.floor(Math.random() * 99));
+    bNew([...s]);
+  };
+  document.getElementById(&quot;bWorst&quot;).onclick = () =&gt; bNew([90, 80, 70, 60, 50, 40, 30, 20]);
+  bBuild(); bRender();
+
+  // ---------- Compare slider ----------
+  const fmt = x =&gt; x &gt;= 1e12 ? (x / 1e12).toFixed(1) + &quot; trillion&quot;
+                 : x &gt;= 1e9 ? (x / 1e9).toFixed(1) + &quot; billion&quot;
+                 : x &gt;= 1e6 ? (x / 1e6).toFixed(1) + &quot; million&quot;
+                 : Math.round(x).toLocaleString();
+  function updateCompare() {
+    const p = Number(document.getElementById(&quot;nSlider&quot;).value);
+    const n = 2 ** p;
+    const good = n * p, bad = n * n;
+    document.getElementById(&quot;nLabel&quot;).textContent = n.toLocaleString();
+    // log scale so both bars stay visible
+    const scale = x =&gt; Math.log10(x + 1) / Math.log10(bad + 1) * 100;
+    document.getElementById(&quot;goodBar&quot;).style.width = scale(good) + &quot;%&quot;;
+    document.getElementById(&quot;badBar&quot;).style.width = &quot;100%&quot;;
+    document.getElementById(&quot;goodNum&quot;).textContent = fmt(good);
+    document.getElementById(&quot;badNum&quot;).textContent = fmt(bad);
+    const ratio = bad / good;
+    document.getElementById(&quot;verdict&quot;).innerHTML =
+      `${n.toLocaleString()} items: ${n.toLocaleString()} × ${p} = ${fmt(good)} steps vs ${n.toLocaleString()}² = ${fmt(bad)} steps.&lt;br&gt;
+       Bubble sort does &lt;b&gt;${fmt(ratio)}× more work&lt;/b&gt;.`;
+  }
+  document.getElementById(&quot;nSlider&quot;).oninput = updateCompare;
+
+  build(); render(); updateCompare();
+&lt;/script&gt;
+&lt;script&gt;document.querySelector(&#x27;.tab[data-tab=&quot;bubbleTab&quot;]&#x27;).click();&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+    <iframe id="heur" title="Intractable problems and heuristics" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Intractable Problems &amp; Heuristics&lt;/title&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;style&gt;
+  :root{
+    --maroon:#4c1130; --maroon2:#7a1f4d; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#faf7f5;
+    --good:#16a34a; --good-bg:#dcfce7; --warn:#d97706; --warn-bg:#fef3c7; --bad:#dc2626; --bad-bg:#fee2e2;
+    --blue:#2563eb; --blue-bg:#dbeafe; --purple:#7c3aed;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#1f1f1f;font-family:&quot;Fredoka&quot;,system-ui,sans-serif;color:var(--ink)}
+  .mono{font-family:&quot;JetBrains Mono&quot;,monospace}
+  .stage{height:100%;display:flex;align-items:center;justify-content:center;padding:12px}
+  .slide{display:none;width:min(100%, calc((100vh - 90px) * 16 / 9));aspect-ratio:16/9;background:var(--bg);border-radius:16px;
+         padding:2.2% 3%;position:relative;overflow:auto}
+  .slide.active{display:flex;flex-direction:column}
+  .slide h1{margin:0 0 .4em;font-size:clamp(1.4rem,3vw,2.5rem);color:var(--maroon)}
+  .slide h2{margin:0 0 .3em;font-size:clamp(1.1rem,2vw,1.6rem)}
+  .slide p, .slide li{font-size:clamp(.9rem,1.45vw,1.2rem);line-height:1.45}
+  .kicker{display:inline-block;background:var(--maroon);color:#fff;border-radius:999px;padding:3px 14px;font-weight:600;
+          font-size:clamp(.75rem,1.1vw,.95rem);margin-bottom:.6em;align-self:flex-start}
+  .nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;
+       background:#fff;border-radius:999px;padding:6px 10px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:5}
+  .nav button{font:inherit;font-weight:600;border:none;background:var(--maroon);color:#fff;border-radius:999px;padding:6px 16px;cursor:pointer}
+  .nav button:disabled{opacity:.35}
+  .nav span{font-weight:600;min-width:60px;text-align:center}
+  button.btn{font:inherit;font-weight:600;font-size:clamp(.8rem,1.2vw,1rem);border:2px solid var(--maroon);background:#fff;color:var(--maroon);
+             border-radius:10px;padding:7px 14px;cursor:pointer}
+  button.btn.solid{background:var(--maroon);color:#fff}
+  button.btn:disabled{opacity:.4;cursor:not-allowed}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2%;flex:1;min-height:0}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px}
+  .hl{background:#fde68a;padding:0 4px;border-radius:4px}
+
+  /* Slide 1 */
+  .question{background:#fff;border-left:8px solid var(--maroon);border-radius:12px;padding:18px 22px;
+            font-size:clamp(1.1rem,2.3vw,1.9rem);font-weight:600;margin:.5em 0}
+  .decode{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:auto}
+  .decode .card b{color:var(--maroon)}
+
+  /* Slide 2 */
+  .bigstat{font-family:&quot;JetBrains Mono&quot;,monospace;font-size:clamp(1.4rem,3vw,2.6rem);font-weight:700;color:var(--maroon)}
+  input[type=range]{width:100%;accent-color:var(--maroon)}
+  .timebar{height:26px;border-radius:8px;background:var(--line);overflow:hidden;margin-top:6px}
+  .timebar div{height:100%;transition:width .4s,background .4s}
+
+  /* Counting slide */
+  .step{opacity:.35;transition:opacity .3s,border-color .3s}
+  .step.on{opacity:1;border-color:var(--maroon)}
+  .loop{background:#fff;border:2px solid var(--line);border-radius:10px;padding:4px;text-align:center;transition:all .3s;opacity:0}
+  .loop.show{opacity:1}
+  .loop svg{width:100%;height:auto;display:block}
+  .loop small{font-family:&quot;JetBrains Mono&quot;,monospace;font-size:clamp(.6rem,.95vw,.8rem)}
+  .formula-big{margin-top:auto;text-align:center;font-family:&quot;JetBrains Mono&quot;,monospace;font-weight:700;
+               font-size:clamp(1rem,2vw,1.6rem);color:var(--maroon);padding-top:10px}
+
+  /* Lab notes */
+  .notes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .note{background:#fff;border-radius:10px;padding:8px 10px;border-top:5px solid;font-size:clamp(.7rem,1vw,.88rem);line-height:1.35}
+  .note b{display:block;font-size:clamp(.78rem,1.1vw,.98rem);margin-bottom:2px}
+
+  /* Methods slide: shorter cards + sat-nav case study */
+  .grid3 .flip, .grid3 .flip .inner{min-height:96px}
+  .grid3 .front h2{font-size:clamp(.85rem,1.4vw,1.15rem);margin:.2em 0 0}
+  .grid3 .front .ico{font-size:1.5rem}
+  .satnav{margin-top:12px;background:#fff;border:2px solid var(--purple);border-radius:14px;padding:10px 14px}
+  .satnav h2{color:var(--purple);font-size:clamp(.95rem,1.6vw,1.3rem)}
+  .satgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .sat{border-top:5px solid;border-radius:10px;background:var(--bg);padding:8px 10px;font-size:clamp(.72rem,1.05vw,.92rem);line-height:1.35}
+  .sat b:first-child{display:block;margin-bottom:2px}
+  .satq{margin:.5em 0 0;font-size:clamp(.8rem,1.15vw,1rem)}
+
+  /* Slide 3 */
+  .def{font-size:clamp(1.1rem,2.1vw,1.7rem);line-height:1.5;background:#fff;border-radius:14px;padding:18px 22px;border:2px solid var(--line)}
+  .points{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+  .point{border-radius:12px;padding:12px 14px;border:2px solid;cursor:pointer;transition:transform .15s}
+  .point:hover{transform:translateY(-2px)}
+  .point .hide{display:none;margin-top:6px;color:var(--ink)}
+  .point.open .hide{display:block}
+  .p1{border-color:var(--good);background:var(--good-bg)} .p2{border-color:var(--blue);background:var(--blue-bg)}
+  .p3{border-color:var(--warn);background:var(--warn-bg)} .p4{border-color:var(--bad);background:var(--bad-bg)}
+
+  /* Slide 4: TSP lab */
+  canvas{width:auto;max-width:100%;max-height:34vh;margin:0 auto;background:#fff;border:2px solid var(--line);border-radius:14px;display:block}
+  .tools{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+  table{border-collapse:collapse;width:100%;font-size:clamp(.8rem,1.2vw,1rem)}
+  td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600}
+  .sw{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+  .msg{background:#fff;border-radius:12px;padding:10px 12px;border:2px dashed var(--maroon2);margin-top:8px;font-size:clamp(.8rem,1.2vw,1rem)}
+
+  /* Slide 5 + 6: flip cards */
+  .flip{perspective:900px;cursor:pointer;min-height:150px}
+  .flip .inner{position:relative;width:100%;height:100%;min-height:150px;transition:transform .5s;transform-style:preserve-3d}
+  .flip.open .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:14px;display:flex;flex-direction:column;justify-content:center}
+  .front{background:var(--maroon);color:#fff;text-align:center}
+  .front .ico{font-size:2rem}
+  .back{background:#fff;border:2px solid var(--maroon);transform:rotateY(180deg)}
+  .back p{margin:.2em 0;font-size:clamp(.8rem,1.15vw,1rem)}
+
+  /* Slide 7 */
+  textarea{width:100%;flex:1;min-height:110px;font:inherit;font-size:clamp(.9rem,1.3vw,1.1rem);border:2px solid var(--line);border-radius:12px;padding:10px}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:6px 0;font-size:clamp(.85rem,1.25vw,1.05rem)}
+  .check input{width:20px;height:20px;accent-color:var(--good);margin-top:3px}
+  .score{font-size:clamp(1.2rem,2.2vw,1.8rem);font-weight:700;color:var(--good);margin-top:8px}
+  .model{display:none;background:var(--good-bg);border:2px solid var(--good);border-radius:12px;padding:12px;margin-top:8px}
+  .model.show{display:block}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;stage&quot;&gt;
+
+&lt;!-- ============ 1. The question ============ --&gt;
+&lt;section class=&quot;slide active&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Exam question&lt;/span&gt;
+  &lt;h1&gt;Solving the &quot;unsolvable&quot;?&lt;/h1&gt;
+  &lt;div class=&quot;question&quot;&gt;&quot;What approach might a programmer take if asked to &#x27;solve&#x27; an intractable problem?&quot;&lt;/div&gt;
+  &lt;p&gt;Notice the quotation marks around &lt;b&gt;&#x27;solve&#x27;&lt;/b&gt;. That&#x27;s the examiner&#x27;s hint: we &lt;b&gt;can&#x27;t&lt;/b&gt; truly solve it in a reasonable time, so what can we do instead?&lt;/p&gt;
+  &lt;div class=&quot;decode&quot;&gt;
+    &lt;div class=&quot;card&quot;&gt;&lt;b&gt;Intractable&lt;/b&gt;&lt;br&gt;Solvable in theory, but &lt;b&gt;not in polynomial time&lt;/b&gt;. Fine for tiny inputs, hopeless for big ones.&lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;&lt;b&gt;&quot;What approach…&quot;&lt;/b&gt;&lt;br&gt;Name the approach &lt;b&gt;and&lt;/b&gt; describe what it does. One word isn&#x27;t enough.&lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;&lt;b&gt;Our goal today&lt;/b&gt;&lt;br&gt;Understand every marking point, then write a full-mark answer.&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 2. Counting routes: (n-1)! / 2 ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Counting the routes&lt;/span&gt;
+  &lt;h1 style=&quot;margin-bottom:.2em&quot;&gt;Why &lt;span class=&quot;mono&quot;&gt;(n − 1)! ÷ 2&lt;/span&gt;?&lt;/h1&gt;
+  &lt;p style=&quot;margin:0 0 .4em&quot;&gt;Let&#x27;s count every route for &lt;b&gt;4 cities&lt;/b&gt;: 🏠 Home, A, B and C. Click through the steps.&lt;/p&gt;
+  &lt;div class=&quot;grid2&quot; style=&quot;grid-template-columns:1fr 1.5fr&quot;&gt;
+    &lt;div style=&quot;display:flex;flex-direction:column;gap:10px&quot;&gt;
+      &lt;div class=&quot;step card&quot; data-s=&quot;1&quot;&gt;&lt;b&gt;① Fix the start: n − 1&lt;/b&gt;&lt;br&gt;
+        A route is a &lt;b&gt;loop&lt;/b&gt;, so it doesn&#x27;t matter where you start. Always start at 🏠.
+        That leaves &lt;b&gt;n − 1 = 3&lt;/b&gt; cities to put in order.&lt;/div&gt;
+      &lt;div class=&quot;step card&quot; data-s=&quot;2&quot;&gt;&lt;b&gt;② Count the orders: (n − 1)!&lt;/b&gt;&lt;br&gt;
+        1st stop: &lt;b&gt;3&lt;/b&gt; choices, 2nd: &lt;b&gt;2&lt;/b&gt;, last: &lt;b&gt;1&lt;/b&gt;.&lt;br&gt;
+        &lt;span class=&quot;mono&quot;&gt;3 × 2 × 1 = 3! = &lt;b&gt;6&lt;/b&gt;&lt;/span&gt; orders.&lt;/div&gt;
+      &lt;div class=&quot;step card&quot; data-s=&quot;3&quot;&gt;&lt;b&gt;③ Each loop is counted twice: ÷ 2&lt;/b&gt;&lt;br&gt;
+        🏠→A→B→C→🏠 is the &lt;b&gt;same loop&lt;/b&gt; as 🏠→C→B→A→🏠, just driven backwards.
+        So &lt;span class=&quot;mono&quot;&gt;6 ÷ 2 = &lt;b&gt;3&lt;/b&gt;&lt;/span&gt; different routes.&lt;/div&gt;
+      &lt;div class=&quot;tools&quot; style=&quot;margin:0&quot;&gt;
+        &lt;button class=&quot;btn&quot; id=&quot;cntBack&quot;&gt;◀ Back&lt;/button&gt;
+        &lt;button class=&quot;btn solid&quot; id=&quot;cntNext&quot;&gt;Next step ▶&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot; style=&quot;display:flex;flex-direction:column&quot;&gt;
+      &lt;div id=&quot;loops&quot; style=&quot;display:grid;grid-template-columns:repeat(3,1fr);gap:8px&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;formula-big&quot; id=&quot;cntFormula&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 3. Why it&#x27;s intractable ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Why can&#x27;t we just solve it?&lt;/span&gt;
+  &lt;h1&gt;The travelling salesman problem&lt;/h1&gt;
+  &lt;div class=&quot;grid2&quot;&gt;
+    &lt;div&gt;
+      &lt;p&gt;Visit every city &lt;b&gt;once&lt;/b&gt;, return home, and find the &lt;b&gt;shortest&lt;/b&gt; route. The brute-force approach checks &lt;b&gt;every possible route&lt;/b&gt;.&lt;/p&gt;
+      &lt;p&gt;&lt;b&gt;Number of cities: &lt;span class=&quot;mono&quot; id=&quot;cityN&quot;&gt;5&lt;/span&gt;&lt;/b&gt;&lt;/p&gt;
+      &lt;input type=&quot;range&quot; id=&quot;citySlider&quot; min=&quot;4&quot; max=&quot;30&quot; value=&quot;5&quot;&gt;
+      &lt;p style=&quot;margin-top:14px&quot;&gt;Possible routes &lt;span class=&quot;mono&quot;&gt;(n − 1)! ÷ 2&lt;/span&gt;&lt;/p&gt;
+      &lt;div class=&quot;bigstat&quot; id=&quot;routes&quot;&gt;12&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;p&gt;Checking &lt;b&gt;1 billion routes per second&lt;/b&gt;, it would take:&lt;/p&gt;
+      &lt;div class=&quot;bigstat&quot; id=&quot;timeTaken&quot;&gt;instantly&lt;/div&gt;
+      &lt;div class=&quot;timebar&quot;&gt;&lt;div id=&quot;timeFill&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;p id=&quot;timeNote&quot; style=&quot;margin-top:12px&quot;&gt;&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 3. Heuristics ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;The main answer&lt;/span&gt;
+  &lt;h1&gt;Use a heuristic&lt;/h1&gt;
+  &lt;div class=&quot;def&quot;&gt;A &lt;b&gt;heuristic&lt;/b&gt; is an algorithm that makes a &lt;span class=&quot;hl&quot;&gt;guess based on experience&lt;/span&gt; (a &quot;rule of thumb&quot;)
+    to find a &lt;span class=&quot;hl&quot;&gt;close-to-optimal solution&lt;/span&gt; in a &lt;b&gt;reasonable time&lt;/b&gt;.&lt;/div&gt;
+  &lt;p style=&quot;margin:.8em 0 0&quot;&gt;👆 Click each card to see what the mark scheme is looking for.&lt;/p&gt;
+  &lt;div class=&quot;points&quot;&gt;
+    &lt;div class=&quot;point p1&quot;&gt;&lt;b&gt;✅ A guess based on experience&lt;/b&gt;&lt;div class=&quot;hide&quot;&gt;It uses a rule of thumb rather than checking every possibility, e.g. &quot;always go to the nearest city next&quot;.&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;point p2&quot;&gt;&lt;b&gt;🎯 Close to optimal / an approximation&lt;/b&gt;&lt;div class=&quot;hide&quot;&gt;The answer is usually &lt;b&gt;good&lt;/b&gt;, often within a few % of the best, but it&#x27;s not guaranteed to be &lt;b&gt;the&lt;/b&gt; best.&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;point p3&quot;&gt;&lt;b&gt;⚠️ Only works in some cases&lt;/b&gt;&lt;div class=&quot;hide&quot;&gt;For some inputs, the rule of thumb can lead to a poor answer. It&#x27;s a trade-off: speed instead of certainty.&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;point p4&quot;&gt;&lt;b&gt;🚫 A non-optimal solution&lt;/b&gt;&lt;div class=&quot;hide&quot;&gt;We &lt;b&gt;accept&lt;/b&gt; that the answer might not be perfect, because a perfect answer would take far too long.&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 4. TSP lab ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Try it yourself&lt;/span&gt;
+  &lt;h1 style=&quot;margin-bottom:.2em&quot;&gt;Heuristics in action&lt;/h1&gt;
+  &lt;div class=&quot;grid2&quot; style=&quot;grid-template-columns:1.35fr 1fr&quot;&gt;
+    &lt;div&gt;
+      &lt;canvas id=&quot;map&quot; width=&quot;640&quot; height=&quot;400&quot;&gt;&lt;/canvas&gt;
+      &lt;div class=&quot;tools&quot;&gt;
+        &lt;button class=&quot;btn&quot; id=&quot;newCities&quot;&gt;🎲 New cities&lt;/button&gt;
+        &lt;label style=&quot;align-self:center&quot;&gt;Cities &lt;select id=&quot;nCities&quot;&gt;&lt;option&gt;6&lt;/option&gt;&lt;option selected&gt;8&lt;/option&gt;&lt;option&gt;9&lt;/option&gt;&lt;option&gt;10&lt;/option&gt;&lt;option&gt;15&lt;/option&gt;&lt;option&gt;25&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;tools&quot;&gt;
+        &lt;button class=&quot;btn&quot; id=&quot;randBtn&quot;&gt;🎲 Random route&lt;/button&gt;
+        &lt;button class=&quot;btn&quot; id=&quot;greedyBtn&quot;&gt;🏃 Greedy&lt;/button&gt;
+        &lt;button class=&quot;btn&quot; id=&quot;hillBtn&quot;&gt;⛰️ Hill-climb&lt;/button&gt;
+        &lt;button class=&quot;btn solid&quot; id=&quot;optBtn&quot;&gt;🐢 Optimal (brute force)&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;table&gt;
+        &lt;tr&gt;&lt;th&gt;Method&lt;/th&gt;&lt;th&gt;Length&lt;/th&gt;&lt;th&gt;vs best&lt;/th&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;sw&quot; style=&quot;background:#9ca3af&quot;&gt;&lt;/span&gt;Random&lt;/td&gt;&lt;td id=&quot;lenRand&quot;&gt;–&lt;/td&gt;&lt;td id=&quot;pctRand&quot;&gt;–&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;sw&quot; style=&quot;background:#2563eb&quot;&gt;&lt;/span&gt;Greedy&lt;/td&gt;&lt;td id=&quot;lenGreedy&quot;&gt;–&lt;/td&gt;&lt;td id=&quot;pctGreedy&quot;&gt;–&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;sw&quot; style=&quot;background:#d97706&quot;&gt;&lt;/span&gt;Hill-climb&lt;/td&gt;&lt;td id=&quot;lenHill&quot;&gt;–&lt;/td&gt;&lt;td id=&quot;pctHill&quot;&gt;–&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;&lt;span class=&quot;sw&quot; style=&quot;background:#16a34a&quot;&gt;&lt;/span&gt;Optimal&lt;/td&gt;&lt;td id=&quot;lenOpt&quot;&gt;–&lt;/td&gt;&lt;td id=&quot;pctOpt&quot;&gt;–&lt;/td&gt;&lt;/tr&gt;
+      &lt;/table&gt;
+      &lt;div class=&quot;msg&quot; id=&quot;labMsg&quot;&gt;Start with &lt;b&gt;Greedy&lt;/b&gt;: always travel to the &lt;b&gt;nearest unvisited city&lt;/b&gt;. It&#x27;s a rule of thumb!&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;notes&quot;&gt;
+    &lt;div class=&quot;note&quot; style=&quot;border-color:#9ca3af&quot;&gt;&lt;b&gt;🎲 Random route&lt;/b&gt;
+      Visit the cities in any order. Instant, but no strategy, so the route is usually long. It&#x27;s our &lt;b&gt;baseline&lt;/b&gt;, not a heuristic.&lt;/div&gt;
+    &lt;div class=&quot;note&quot; style=&quot;border-color:#2563eb&quot;&gt;&lt;b&gt;🏃 Greedy (nearest neighbour)&lt;/b&gt;
+      From where you are, always go to the &lt;b&gt;closest unvisited city&lt;/b&gt;. A rule of thumb: fast and usually good, but it can leave a long trip home at the end.&lt;/div&gt;
+    &lt;div class=&quot;note&quot; style=&quot;border-color:#d97706&quot;&gt;&lt;b&gt;⛰️ Hill-climbing&lt;/b&gt;
+      Start with a route, then try &lt;b&gt;small changes&lt;/b&gt; (reverse a section). Keep a change only if it&#x27;s shorter. Stop when nothing helps: it may be stuck on a &quot;local best&quot;.&lt;/div&gt;
+    &lt;div class=&quot;note&quot; style=&quot;border-color:#16a34a&quot;&gt;&lt;b&gt;🐢 Brute force&lt;/b&gt;
+      Check &lt;b&gt;every one&lt;/b&gt; of the (n − 1)! ÷ 2 routes. &lt;b&gt;Guaranteed&lt;/b&gt; best, but only possible for a few cities. That&#x27;s why the problem is intractable.&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 5. Other approaches ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Other marking points&lt;/span&gt;
+  &lt;h1&gt;Change the problem itself&lt;/h1&gt;
+  &lt;p&gt;Instead of a heuristic, a programmer can make the problem &lt;b&gt;easier to solve&lt;/b&gt;. Click to flip.&lt;/p&gt;
+  &lt;div class=&quot;grid2&quot; style=&quot;flex:0;margin-top:10px&quot;&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;
+      &lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🔓&lt;/div&gt;&lt;h2&gt;Relax some of the constraints&lt;/h2&gt;&lt;p&gt;Loosen the rules the solution must follow.&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;h2&gt;Relax the constraints&lt;/h2&gt;
+        &lt;p&gt;🗺️ &quot;The salesman doesn&#x27;t have to return home.&quot;&lt;/p&gt;
+        &lt;p&gt;📍 &quot;Visit &lt;b&gt;most&lt;/b&gt; cities, not all of them.&quot;&lt;/p&gt;
+        &lt;p&gt;⏱️ &quot;Any route within 5% of the best is fine.&quot;&lt;/p&gt;
+        &lt;p class=&quot;mono&quot; style=&quot;color:var(--muted)&quot;&gt;Fewer rules → far fewer possibilities to check.&lt;/p&gt;&lt;/div&gt;
+    &lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;
+      &lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🧩&lt;/div&gt;&lt;h2&gt;Solve a simpler version&lt;/h2&gt;&lt;p&gt;Break it down or shrink it.&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;h2&gt;Solve a simpler version&lt;/h2&gt;
+        &lt;p&gt;🏙️ Split the map into regions and solve each small region separately.&lt;/p&gt;
+        &lt;p&gt;🔢 Only consider each city&#x27;s 3 nearest neighbours.&lt;/p&gt;
+        &lt;p&gt;📦 Solve it for today&#x27;s 10 deliveries, not the whole country.&lt;/p&gt;
+        &lt;p class=&quot;mono&quot; style=&quot;color:var(--muted)&quot;&gt;Small inputs are still fast, even for intractable problems.&lt;/p&gt;&lt;/div&gt;
+    &lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 6. Heuristic methods ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Name an example: 1 mark&lt;/span&gt;
+  &lt;h1&gt;Heuristic methods&lt;/h1&gt;
+  &lt;p&gt;The mark scheme accepts any reasonable example. Click a method to see how it works.&lt;/p&gt;
+  &lt;div class=&quot;grid3&quot; style=&quot;margin-top:8px&quot;&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;&lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🏃&lt;/div&gt;&lt;h2&gt;Greedy algorithm&lt;/h2&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;p&gt;&lt;b&gt;Always take the best-looking option right now.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Nearest city next; biggest coin first when giving change.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;&lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;⛰️&lt;/div&gt;&lt;h2&gt;Hill-climbing / local improvement&lt;/h2&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;p&gt;&lt;b&gt;Start with any answer, then keep making small improvements&lt;/b&gt; until none help.&lt;/p&gt;&lt;p&gt;Risk: you can get stuck on a &quot;small hill&quot; (a local best).&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;&lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🔥&lt;/div&gt;&lt;h2&gt;Simulated annealing&lt;/h2&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;p&gt;&lt;b&gt;Like hill-climbing, but sometimes accepts a worse move&lt;/b&gt; early on, to escape small hills.&lt;/p&gt;&lt;p&gt;Named after cooling metal slowly.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;&lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🎲&lt;/div&gt;&lt;h2&gt;Stochastic (random) methods&lt;/h2&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;p&gt;&lt;b&gt;Try lots of random solutions&lt;/b&gt; and keep the best one found in the time available.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;&lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🔁&lt;/div&gt;&lt;h2&gt;Trial and error&lt;/h2&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;p&gt;&lt;b&gt;Try a solution, check it, adjust, try again.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Simple, but surprisingly common in practice.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;flip&quot;&gt;&lt;div class=&quot;inner&quot;&gt;&lt;div class=&quot;face front&quot;&gt;&lt;div class=&quot;ico&quot;&gt;🚚&lt;/div&gt;&lt;h2&gt;Real world&lt;/h2&gt;&lt;/div&gt;
+      &lt;div class=&quot;face back&quot;&gt;&lt;p&gt;Delivery van routes, airline schedules and school timetables all rely on heuristics.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;satnav&quot;&gt;
+    &lt;h2&gt;🚗 Case study: how does a sat-nav choose your route?&lt;/h2&gt;
+    &lt;div class=&quot;satgrid&quot;&gt;
+      &lt;div class=&quot;sat&quot; style=&quot;border-color:#2563eb&quot;&gt;&lt;b&gt;📍 A → B&lt;/b&gt;
+        A fast &lt;b&gt;shortest-path&lt;/b&gt; algorithm such as &lt;b&gt;Dijkstra&#x27;s&lt;/b&gt; or &lt;b&gt;A*&lt;/b&gt;. A* uses a heuristic (&quot;head roughly towards the destination&quot;) to search fewer roads.&lt;/div&gt;
+      &lt;div class=&quot;sat&quot; style=&quot;border-color:#d97706&quot;&gt;&lt;b&gt;📦 Several stops&lt;/b&gt;
+        Choosing the best &lt;b&gt;order&lt;/b&gt; of stops is the travelling salesman problem, which is &lt;b&gt;intractable&lt;/b&gt;. So it uses heuristics like &lt;b&gt;greedy&lt;/b&gt; or &lt;b&gt;local improvement&lt;/b&gt;.&lt;/div&gt;
+      &lt;div class=&quot;sat&quot; style=&quot;border-color:#dc2626&quot;&gt;&lt;b&gt;⚠️ Not always optimal&lt;/b&gt;
+        Traffic and road speeds are &lt;b&gt;estimates&lt;/b&gt;, conditions change after you set off, and with many stops it settles for a &lt;b&gt;good-enough&lt;/b&gt; order, not the perfect one.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;p class=&quot;satq&quot;&gt;🤔 &lt;b&gt;Think:&lt;/b&gt; if the sat-nav sends you the slow way, is it the &lt;b&gt;algorithm&lt;/b&gt; that&#x27;s wrong, or the &lt;b&gt;data&lt;/b&gt;?&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ============ 7. Write and self-mark ============ --&gt;
+&lt;section class=&quot;slide&quot;&gt;
+  &lt;span class=&quot;kicker&quot;&gt;Your turn&lt;/span&gt;
+  &lt;h1 style=&quot;margin-bottom:.2em&quot;&gt;Write it, then mark it&lt;/h1&gt;
+  &lt;div class=&quot;grid2&quot;&gt;
+    &lt;div style=&quot;display:flex;flex-direction:column&quot;&gt;
+      &lt;p style=&quot;margin:0 0 .4em&quot;&gt;&lt;b&gt;&quot;What approach might a programmer take if asked to &#x27;solve&#x27; an intractable problem?&quot;&lt;/b&gt;&lt;/p&gt;
+      &lt;textarea placeholder=&quot;Write your answer here…&quot;&gt;&lt;/textarea&gt;
+      &lt;div class=&quot;tools&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;modelBtn&quot;&gt;👀 Show model answer&lt;/button&gt;&lt;/div&gt;
+      &lt;div class=&quot;model&quot; id=&quot;model&quot;&gt;A programmer could use a &lt;b&gt;heuristic&lt;/b&gt;, such as a &lt;b&gt;greedy algorithm&lt;/b&gt; or &lt;b&gt;hill-climbing&lt;/b&gt;.
+        This uses a &lt;b&gt;rule of thumb based on experience&lt;/b&gt; to find a &lt;b&gt;close-to-optimal (approximate) solution&lt;/b&gt; in a reasonable time,
+        although it &lt;b&gt;may not be optimal&lt;/b&gt; and &lt;b&gt;may only work well in some cases&lt;/b&gt;. Alternatively, they could &lt;b&gt;relax some of the
+        constraints&lt;/b&gt; or &lt;b&gt;solve a simpler version&lt;/b&gt; of the problem.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;h2&gt;✅ Tick each point your answer includes&lt;/h2&gt;
+      &lt;label class=&quot;check&quot;&gt;&lt;input type=&quot;checkbox&quot;&gt; Uses a &lt;b&gt;heuristic&lt;/b&gt; / a guess based on experience&lt;/label&gt;
+      &lt;label class=&quot;check&quot;&gt;&lt;input type=&quot;checkbox&quot;&gt; Gives a &lt;b&gt;close-to-optimal&lt;/b&gt; solution / an approximation&lt;/label&gt;
+      &lt;label class=&quot;check&quot;&gt;&lt;input type=&quot;checkbox&quot;&gt; Recognises it is &lt;b&gt;non-optimal&lt;/b&gt; / only works in some cases&lt;/label&gt;
+      &lt;label class=&quot;check&quot;&gt;&lt;input type=&quot;checkbox&quot;&gt; Names an &lt;b&gt;example method&lt;/b&gt; (greedy, hill-climbing, simulated annealing…)&lt;/label&gt;
+      &lt;label class=&quot;check&quot;&gt;&lt;input type=&quot;checkbox&quot;&gt; &lt;b&gt;Relax&lt;/b&gt; some of the constraints&lt;/label&gt;
+      &lt;label class=&quot;check&quot;&gt;&lt;input type=&quot;checkbox&quot;&gt; Solve a &lt;b&gt;simpler version&lt;/b&gt; of the problem&lt;/label&gt;
+      &lt;div class=&quot;score&quot; id=&quot;score&quot;&gt;0 marking points&lt;/div&gt;
+      &lt;p style=&quot;color:var(--muted);margin:.3em 0 0&quot;&gt;Check the number of marks on your paper: you need at least that many &lt;b&gt;different&lt;/b&gt; points.&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;/div&gt;
+
+&lt;div class=&quot;nav&quot;&gt;
+  &lt;button id=&quot;prev&quot;&gt;◀&lt;/button&gt;&lt;span id=&quot;count&quot;&gt;1 / 7&lt;/span&gt;&lt;button id=&quot;next&quot;&gt;▶&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // ---------------- Slide navigation ----------------
+  const slides = [...document.querySelectorAll(&quot;.slide&quot;)];
+  let cur = 0;
+  function show(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) =&gt; s.classList.toggle(&quot;active&quot;, k === cur));
+    document.getElementById(&quot;count&quot;).textContent = `${cur + 1} / ${slides.length}`;
+    document.getElementById(&quot;prev&quot;).disabled = cur === 0;
+    document.getElementById(&quot;next&quot;).disabled = cur === slides.length - 1;
+  }
+  document.getElementById(&quot;prev&quot;).onclick = () =&gt; show(cur - 1);
+  document.getElementById(&quot;next&quot;).onclick = () =&gt; show(cur + 1);
+  document.addEventListener(&quot;keydown&quot;, e =&gt; {
+    if ([&quot;TEXTAREA&quot;, &quot;INPUT&quot;, &quot;SELECT&quot;].includes(e.target.tagName)) return;
+    if (e.key === &quot;ArrowRight&quot; || e.key === &quot; &quot;) { e.preventDefault(); show(cur + 1); }
+    if (e.key === &quot;ArrowLeft&quot;) show(cur - 1);
+  });
+  show(0);
+
+  // Clickable cards
+  document.querySelectorAll(&quot;.point, .flip&quot;).forEach(c =&gt; c.onclick = () =&gt; c.classList.toggle(&quot;open&quot;));
+
+  // ---------------- Counting slide: (n-1)! / 2 ----------------
+  const PTS = { H: [20, 20], A: [80, 20], B: [80, 80], C: [20, 80] };
+  const ORDERS = [&quot;ABC&quot;, &quot;ACB&quot;, &quot;BAC&quot;, &quot;BCA&quot;, &quot;CAB&quot;, &quot;CBA&quot;];
+  // Each order and its reverse are the same loop – give each pair the same colour
+  const PAIR = { ABC: 0, CBA: 0, ACB: 1, BCA: 1, BAC: 2, CAB: 2 };
+  const PAIR_COL = [&quot;#2563eb&quot;, &quot;#d97706&quot;, &quot;#16a34a&quot;];
+  let cntStep = 1;
+
+  function loopSVG(order, col) {
+    const path = [&quot;H&quot;, ...order, &quot;H&quot;].map(p =&gt; PTS[p].join(&quot;,&quot;)).join(&quot; &quot;);
+    const dots = Object.entries(PTS).map(([k, [x, y]]) =&gt;
+      `&lt;circle cx=&quot;${x}&quot; cy=&quot;${y}&quot; r=&quot;9&quot; fill=&quot;${k === &quot;H&quot; ? &quot;#4c1130&quot; : &quot;#1f2937&quot;}&quot;/&gt;
+       &lt;text x=&quot;${x}&quot; y=&quot;${y + 4}&quot; font-size=&quot;10&quot; text-anchor=&quot;middle&quot; fill=&quot;#fff&quot; font-family=&quot;Fredoka&quot;&gt;${k === &quot;H&quot; ? &quot;🏠&quot; : k}&lt;/text&gt;`).join(&quot;&quot;);
+    return `&lt;svg viewBox=&quot;0 0 100 100&quot;&gt;&lt;polyline points=&quot;${path}&quot; fill=&quot;none&quot; stroke=&quot;${col}&quot; stroke-width=&quot;5&quot; stroke-linejoin=&quot;round&quot;/&gt;${dots}&lt;/svg&gt;`;
+  }
+  function renderCount() {
+    document.querySelectorAll(&quot;.step&quot;).forEach(s =&gt; s.classList.toggle(&quot;on&quot;, Number(s.dataset.s) &lt;= cntStep));
+    const grouped = cntStep &gt;= 3;
+    const list = grouped ? [&quot;ABC&quot;, &quot;CBA&quot;, &quot;ACB&quot;, &quot;BCA&quot;, &quot;BAC&quot;, &quot;CAB&quot;] : ORDERS;
+    document.getElementById(&quot;loops&quot;).innerHTML = list.map((o, i) =&gt; {
+      const col = grouped ? PAIR_COL[PAIR[o]] : &quot;#7a1f4d&quot;;
+      const label = `🏠→${o.split(&quot;&quot;).join(&quot;→&quot;)}→🏠`;
+      return `&lt;div class=&quot;loop ${cntStep &gt;= 2 ? &quot;show&quot; : &quot;&quot;}&quot; style=&quot;${grouped ? `border-color:${col}` : &quot;&quot;}&quot;&gt;
+        ${loopSVG(o, col)}&lt;small&gt;${label}&lt;/small&gt;&lt;/div&gt;`;
+    }).join(&quot;&quot;);
+    document.getElementById(&quot;cntFormula&quot;).innerHTML = {
+      1: &quot;n = 4 cities → fix 🏠 → &lt;b&gt;3&lt;/b&gt; left to arrange&quot;,
+      2: &quot;3 × 2 × 1 = 3! = &lt;b&gt;6&lt;/b&gt; orders&quot;,
+      3: &quot;Matching colours = same loop!&lt;br&gt;(4 − 1)! ÷ 2 = 6 ÷ 2 = &lt;b&gt;3 routes&lt;/b&gt;&quot;
+    }[cntStep];
+    document.getElementById(&quot;cntBack&quot;).disabled = cntStep === 1;
+    document.getElementById(&quot;cntNext&quot;).disabled = cntStep === 3;
+  }
+  document.getElementById(&quot;cntNext&quot;).onclick = () =&gt; { cntStep = Math.min(3, cntStep + 1); renderCount(); };
+  document.getElementById(&quot;cntBack&quot;).onclick = () =&gt; { cntStep = Math.max(1, cntStep - 1); renderCount(); };
+  document.querySelectorAll(&quot;.step&quot;).forEach(s =&gt; s.onclick = () =&gt; { cntStep = Number(s.dataset.s); renderCount(); });
+  renderCount();
+
+  // ---------------- Slide 3: route explosion ----------------
+  function factorial(n) { let r = 1n; for (let i = 2n; i &lt;= BigInt(n); i++) r *= i; return r; }
+  function bigFmt(b) {
+    const s = b.toString();
+    if (s.length &lt;= 9) return Number(b).toLocaleString();
+    return `${s[0]}.${s.slice(1, 3)} × 10${String(s.length - 1).split(&quot;&quot;).map(d =&gt; &quot;⁰¹²³⁴⁵⁶⁷⁸⁹&quot;[d]).join(&quot;&quot;)}`;
+  }
+  function timeFmt(sec) {
+    const yr = 365.25 * 24 * 3600;
+    if (sec &lt; 1) return [&quot;instantly&quot;, 2, &quot;var(--good)&quot;];
+    if (sec &lt; 60) return [`${sec.toFixed(0)} seconds`, 10, &quot;var(--good)&quot;];
+    if (sec &lt; 3600) return [`${(sec / 60).toFixed(0)} minutes`, 25, &quot;var(--warn)&quot;];
+    if (sec &lt; 86400) return [`${(sec / 3600).toFixed(1)} hours`, 40, &quot;var(--warn)&quot;];
+    if (sec &lt; yr) return [`${(sec / 86400).toFixed(0)} days`, 55, &quot;var(--warn)&quot;];
+    const y = sec / yr;
+    if (y &lt; 1e6) return [`${Math.round(y).toLocaleString()} years`, 75, &quot;var(--bad)&quot;];
+    if (y &lt; 1e9) return [`${(y / 1e6).toFixed(0)} million years`, 90, &quot;var(--bad)&quot;];
+    return [`${(y / 1e9).toLocaleString(undefined, { maximumFractionDigits: 0 })} billion years`, 100, &quot;var(--bad)&quot;];
+  }
+  function updateRoutes() {
+    const n = Number(document.getElementById(&quot;citySlider&quot;).value);
+    const routes = factorial(n - 1) / 2n;
+    document.getElementById(&quot;cityN&quot;).textContent = n;
+    document.getElementById(&quot;routes&quot;).textContent = bigFmt(routes);
+    const sec = Number(routes) / 1e9;
+    const [txt, pct, col] = timeFmt(sec);
+    document.getElementById(&quot;timeTaken&quot;).textContent = txt;
+    const fill = document.getElementById(&quot;timeFill&quot;);
+    fill.style.width = pct + &quot;%&quot;; fill.style.background = col;
+    document.getElementById(&quot;timeNote&quot;).innerHTML = n &lt;= 12
+      ? &quot;Still manageable: small inputs are fine, even for intractable problems.&quot;
+      : n &lt;= 20 ? &quot;Each extra city multiplies the work. This is &lt;b&gt;factorial growth&lt;/b&gt;, worse than exponential!&quot;
+      : &quot;The universe is about 14 billion years old. Brute force is &lt;b&gt;not an option&lt;/b&gt;: we need a different approach.&quot;;
+  }
+  document.getElementById(&quot;citySlider&quot;).oninput = updateRoutes;
+  updateRoutes();
+
+  // ---------------- Slide 4: TSP lab ----------------
+  const canvas = document.getElementById(&quot;map&quot;), ctx = canvas.getContext(&quot;2d&quot;);
+  let cities = [], routes = {}, hillTimer = null;
+  const COLORS = { rand: &quot;#9ca3af&quot;, greedy: &quot;#2563eb&quot;, hill: &quot;#d97706&quot;, opt: &quot;#16a34a&quot; };
+  const dist = (a, b) =&gt; Math.hypot(cities[a].x - cities[b].x, cities[a].y - cities[b].y);
+  const tourLen = t =&gt; t.reduce((s, c, i) =&gt; s + dist(c, t[(i + 1) % t.length]), 0);
+
+  function newCities() {
+    clearInterval(hillTimer);
+    const n = Number(document.getElementById(&quot;nCities&quot;).value);
+    cities = [];
+    while (cities.length &lt; n) {
+      const p = { x: 40 + Math.random() * 560, y: 40 + Math.random() * 320 };
+      if (cities.every(c =&gt; Math.hypot(c.x - p.x, c.y - p.y) &gt; 45)) cities.push(p);
+    }
+    routes = {};
+    document.getElementById(&quot;optBtn&quot;).disabled = n &gt; 10;
+    document.getElementById(&quot;optBtn&quot;).title = n &gt; 10 ? &quot;Too many cities to brute force in a browser!&quot; : &quot;&quot;;
+    [&quot;Rand&quot;, &quot;Greedy&quot;, &quot;Hill&quot;, &quot;Opt&quot;].forEach(k =&gt; {
+      document.getElementById(&quot;len&quot; + k).textContent = &quot;–&quot;;
+      document.getElementById(&quot;pct&quot; + k).textContent = &quot;–&quot;;
+    });
+    setMsg(n &gt; 10
+      ? `With &lt;b&gt;${n} cities&lt;/b&gt; there are too many routes to brute force here. Heuristics are the &lt;b&gt;only&lt;/b&gt; practical option!`
+      : &quot;Start with &lt;b&gt;Greedy&lt;/b&gt;: always travel to the &lt;b&gt;nearest unvisited city&lt;/b&gt;. It&#x27;s a rule of thumb!&quot;);
+    draw();
+  }
+
+  function draw(active) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const show = active ? [active] : Object.keys(routes);
+    show.forEach(k =&gt; {
+      const t = routes[k]; if (!t) return;
+      ctx.strokeStyle = COLORS[k]; ctx.lineWidth = k === &quot;opt&quot; ? 5 : 3;
+      ctx.setLineDash(k === &quot;rand&quot; ? [8, 6] : []);
+      ctx.globalAlpha = active || show.length === 1 ? 1 : 0.75;
+      ctx.beginPath();
+      t.forEach((c, i) =&gt; i ? ctx.lineTo(cities[c].x, cities[c].y) : ctx.moveTo(cities[c].x, cities[c].y));
+      ctx.closePath(); ctx.stroke();
+    });
+    ctx.globalAlpha = 1; ctx.setLineDash([]);
+    cities.forEach((c, i) =&gt; {
+      ctx.beginPath(); ctx.arc(c.x, c.y, i === 0 ? 11 : 8, 0, Math.PI * 2);
+      ctx.fillStyle = i === 0 ? &quot;#4c1130&quot; : &quot;#1f2937&quot;; ctx.fill();
+      if (i === 0) { ctx.fillStyle = &quot;#fff&quot;; ctx.font = &quot;bold 11px Fredoka&quot;; ctx.textAlign = &quot;center&quot;; ctx.fillText(&quot;🏠&quot;, c.x, c.y + 4); }
+    });
+  }
+
+  function setResult(key, tour) {
+    routes[key] = tour;
+    const cap = key[0].toUpperCase() + key.slice(1);
+    document.getElementById(&quot;len&quot; + cap).textContent = Math.round(tourLen(tour));
+    refreshPct();
+  }
+  function refreshPct() {
+    const best = routes.opt ? tourLen(routes.opt) : null;
+    [&quot;rand&quot;, &quot;greedy&quot;, &quot;hill&quot;, &quot;opt&quot;].forEach(k =&gt; {
+      const cap = k[0].toUpperCase() + k.slice(1);
+      if (!routes[k]) return;
+      document.getElementById(&quot;pct&quot; + cap).textContent = best
+        ? (k === &quot;opt&quot; ? &quot;best ✅&quot; : `+${((tourLen(routes[k]) / best - 1) * 100).toFixed(1)}%`) : &quot;?&quot;;
+    });
+  }
+  const setMsg = html =&gt; document.getElementById(&quot;labMsg&quot;).innerHTML = html;
+
+  // Random route
+  document.getElementById(&quot;randBtn&quot;).onclick = () =&gt; {
+    clearInterval(hillTimer);
+    const rest = cities.map((_, i) =&gt; i).slice(1).sort(() =&gt; Math.random() - 0.5);
+    setResult(&quot;rand&quot;, [0, ...rest]); draw(&quot;rand&quot;);
+    setMsg(&quot;A &lt;b&gt;random&lt;/b&gt; route: fast to produce, but usually long. No thinking involved!&quot;);
+  };
+
+  // Greedy: nearest neighbour
+  function greedy() {
+    const t = [0], left = new Set(cities.map((_, i) =&gt; i).slice(1));
+    while (left.size) {
+      const last = t[t.length - 1];
+      let best = null;
+      left.forEach(c =&gt; { if (best === null || dist(last, c) &lt; dist(last, best)) best = c; });
+      t.push(best); left.delete(best);
+    }
+    return t;
+  }
+  document.getElementById(&quot;greedyBtn&quot;).onclick = () =&gt; {
+    clearInterval(hillTimer);
+    setResult(&quot;greedy&quot;, greedy()); draw(&quot;greedy&quot;);
+    setMsg(&quot;&lt;b&gt;Greedy:&lt;/b&gt; always go to the nearest unvisited city. Very fast and usually decent, but notice the long \&quot;return home\&quot; leg? It&#x27;s &lt;b&gt;not guaranteed&lt;/b&gt; to be the best.&quot;);
+  };
+
+  // Hill-climbing: keep reversing segments (2-opt) while it helps
+  document.getElementById(&quot;hillBtn&quot;).onclick = () =&gt; {
+    clearInterval(hillTimer);
+    let t = (routes.greedy || greedy()).slice();
+    let improvements = 0;
+    setMsg(&quot;&lt;b&gt;Hill-climbing:&lt;/b&gt; start from the greedy route and keep making small improvements…&quot;);
+    hillTimer = setInterval(() =&gt; {
+      const n = t.length;
+      let improved = false;
+      outer:
+      for (let i = 1; i &lt; n - 1; i++) {
+        for (let k = i + 1; k &lt; n; k++) {
+          const cand = t.slice(0, i).concat(t.slice(i, k + 1).reverse(), t.slice(k + 1));
+          if (tourLen(cand) &lt; tourLen(t) - 0.01) { t = cand; improved = true; improvements++; break outer; }
+        }
+      }
+      setResult(&quot;hill&quot;, t); draw(&quot;hill&quot;);
+      if (!improved) {
+        clearInterval(hillTimer);
+        setMsg(`&lt;b&gt;Hill-climbing&lt;/b&gt; made &lt;b&gt;${improvements}&lt;/b&gt; improvement${improvements === 1 ? &quot;&quot; : &quot;s&quot;} and then got stuck: no small change helps any more.
+                That&#x27;s a &lt;b&gt;local improvement&lt;/b&gt; heuristic. Usually very close to the best, but still not guaranteed.`);
+      }
+    }, 350);
+  };
+
+  // Optimal: brute force every route (only for small n)
+  function permute(arr, cb) {
+    const c = new Array(arr.length).fill(0);
+    cb(arr);
+    let i = 0;
+    while (i &lt; arr.length) {
+      if (c[i] &lt; i) {
+        const j = i % 2 ? c[i] : 0;
+        [arr[j], arr[i]] = [arr[i], arr[j]];
+        cb(arr); c[i]++; i = 0;
+      } else { c[i] = 0; i++; }
+    }
+  }
+  document.getElementById(&quot;optBtn&quot;).onclick = () =&gt; {
+    clearInterval(hillTimer);
+    const rest = cities.map((_, i) =&gt; i).slice(1);
+    let best = null, bestLen = Infinity, count = 0;
+    const t0 = performance.now();
+    permute(rest, p =&gt; {
+      count++;
+      const t = [0, ...p], l = tourLen(t);
+      if (l &lt; bestLen) { bestLen = l; best = t; }
+    });
+    const ms = performance.now() - t0;
+    setResult(&quot;opt&quot;, best); draw();
+    setMsg(`&lt;b&gt;Brute force&lt;/b&gt; checked &lt;b&gt;${count.toLocaleString()}&lt;/b&gt; routes in ${ms.toFixed(0)} ms to guarantee the best.
+            Compare the % column: how close did the heuristics get? Now try &lt;b&gt;15 cities&lt;/b&gt;.`);
+  };
+
+  document.getElementById(&quot;newCities&quot;).onclick = newCities;
+  document.getElementById(&quot;nCities&quot;).onchange = newCities;
+  newCities();
+
+  // ---------------- Slide 7: self-mark ----------------
+  const boxes = [...document.querySelectorAll(&quot;.check input&quot;)];
+  boxes.forEach(b =&gt; b.onchange = () =&gt; {
+    const n = boxes.filter(x =&gt; x.checked).length;
+    document.getElementById(&quot;score&quot;).textContent = `${n} marking point${n === 1 ? &quot;&quot; : &quot;s&quot;}`;
+  });
+  document.getElementById(&quot;modelBtn&quot;).onclick = () =&gt; {
+    const m = document.getElementById(&quot;model&quot;);
+    m.classList.toggle(&quot;show&quot;);
+    document.getElementById(&quot;modelBtn&quot;).textContent = m.classList.contains(&quot;show&quot;) ? &quot;🙈 Hide model answer&quot; : &quot;👀 Show model answer&quot;;
+  };
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+  </div>
+</div>
+<script>
+  // Each section is its own page: switching just shows one and hides the others
+  function show(view) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === view));
+    document.querySelectorAll("iframe").forEach(f => f.classList.toggle("active", f.id === view));
+    const f = document.getElementById(view);
+    try { f.focus(); f.contentWindow.focus(); } catch (e) {}   // so the arrow keys work straight away
+  }
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => show(t.dataset.view));
+</script>
+</body>
+</html>
